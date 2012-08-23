@@ -6,6 +6,7 @@ from xml.dom.minidom import parse
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
 __language__ = __settings__.getLocalizedString
+__cwd__      = __settings__.getAddonInfo('path')
 
 # SageTV recording Directories for path replacement
 sage_rec = __settings__.getSetting("sage_rec")
@@ -129,7 +130,12 @@ def addLink(name,url,plot,iconimage,genre,airdate,showtitle,fileid):
         liz=xbmcgui.ListItem(name)
         strDelete = strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + fileid
         liz.addContextMenuItems([('Delete Show', 'PlayMedia(' + strDelete + ')',)])
-        liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "aired": airdate, "TVShowTitle": showtitle } )
+        datesplit = airdate.split('-')
+        try:
+            date = datesplit[2]+'.'+datesplit[1]+'.'+datesplit[0]
+        except:
+            date = "01.01.1900"
+        liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": date, "aired": airdate, "TVShowTitle": showtitle } )
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
@@ -138,9 +144,9 @@ def addDir(name,url,mode,iconimage):
         u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
         ok=True
         liz=xbmcgui.ListItem(name)
-        liz.setInfo(type="TV Show", infoLabels={ "Title": name } )
-        liz.setIconImage(xbmc.translatePath(os.path.join(os.getcwd().replace(';', ''),'resources','media',iconimage)))
-        liz.setThumbnailImage(xbmc.translatePath(os.path.join(os.getcwd().replace(';', ''),'resources','media',iconimage)))
+        liz.setInfo(type="video", infoLabels={ "Title": name } )
+        liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+        liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
         return ok
         
