@@ -1,19 +1,44 @@
 import urllib,urllib2,re
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 import os
+import unicodedata
 from xml.dom.minidom import parse
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
 __language__ = __settings__.getLocalizedString
 
+# SageTV recording Directories for path replacement
 sage_rec = __settings__.getSetting("sage_rec")
 sage_unc = __settings__.getSetting("sage_unc")
 
+# SageTV URL based on user settings
+strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.getSetting("sage_pass") + '@' + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
+
 def CATEGORIES():
-        strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.getSetting("sage_pass") + '@' + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
+ 
         addDir('All Shows', strUrl + '/sage/Recordings?xml=yes',2,'icon.png')
-        #addDir('The Daily Show',strUrl + '/sage/Search?searchType=TVFiles&SearchString=Daily%20show&DVD=on&sort2=airdate_asc&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes',2,'dailyshow.jpg')
-        #addDir('Sports',strUrl + '/sage/Search?searchType=TVFiles&Categories=Sports+event&SearchString=&xml=yes',2,'sports.jpg')
+        req = urllib.urlopen(strUrl + '/sage/Recordings?xml=yes')
+        content = parse(req)
+        uniqueListOfShowTitles = []
+        for showlist in content.getElementsByTagName('show'):
+          strTitle = ''
+          for shownode in showlist.childNodes:
+            # Get the title of the show
+            if shownode.nodeName == 'title':
+              strTitle = shownode.toxml()
+              strTitle = strTitle.replace('<title>','')
+              strTitle = strTitle.replace('</title>','')
+              strTitle = strTitle.replace('&amp;','&')
+              strTitle = strTitle.replace('&quot;','"')
+              strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+              if strTitle not in uniqueListOfShowTitles:
+                uniqueListOfShowTitles.append(strTitle)
+
+        uniqueListOfShowTitles.sort()
+        for strTitle in uniqueListOfShowTitles:
+            urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
+            print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
+            addDir(strTitle, urlToShowEpisodes,2,'icon.png')
 
 def VIDEOLINKS(url,name):
         #Videolinks gets called immediately after adddir, so the timeline is categories, adddir, and then videolinks
@@ -102,8 +127,8 @@ def get_params():
 def addLink(name,url,plot,iconimage,genre,airdate,showtitle,fileid):
         ok=True
         liz=xbmcgui.ListItem(name)
-        strDelete = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.getSetting("sage_pass") + '@' + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port") + '/sagex/api?command=DeleteFile&1=mediafile:' + fileid
-        liz.addContextMenuItems([('Delete', 'PlayMedia(' + strDelete + ')',)])
+        strDelete = strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + fileid
+        liz.addContextMenuItems([('Delete Show', 'PlayMedia(' + strDelete + ')',)])
         liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "aired": airdate, "TVShowTitle": showtitle } )
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
