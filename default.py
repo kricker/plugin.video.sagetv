@@ -17,12 +17,14 @@ strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.g
 
 def CATEGORIES():
  
-        addDir('All Shows', strUrl + '/sage/Recordings?xml=yes',2,'icon.png')
+        iconImage = xbmc.translatePath(os.path.join(__cwd__,'resources','media','icon.png'))
+        addDir('[All Shows]', strUrl + '/sage/Recordings?xml=yes',2,iconImage)
         req = urllib.urlopen(strUrl + '/sage/Recordings?xml=yes')
         content = parse(req)
-        uniqueListOfShowTitles = []
+        dictOfTitlesAndMediaFileIds = {}
         for showlist in content.getElementsByTagName('show'):
           strTitle = ''
+          strMediaFileId = ''
           for shownode in showlist.childNodes:
             # Get the title of the show
             if shownode.nodeName == 'title':
@@ -32,14 +34,21 @@ def CATEGORIES():
               strTitle = strTitle.replace('&amp;','&')
               strTitle = strTitle.replace('&quot;','"')
               strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
-              if strTitle not in uniqueListOfShowTitles:
-                uniqueListOfShowTitles.append(strTitle)
-
-        uniqueListOfShowTitles.sort()
-        for strTitle in uniqueListOfShowTitles:
-            urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
+            # Get the mediafileid of the show
+            if shownode.nodeName == 'airing':
+              for shownode1 in shownode.childNodes:
+                if shownode1.nodeName == 'mediafile':
+                  strMediaFileId = shownode1.getAttribute('sageDbId')
+ 			  
+            if(strTitle<>""):
+				dictOfTitlesAndMediaFileIds[strTitle] = strMediaFileId
+			
+        for strTitle in dictOfTitlesAndMediaFileIds:
+            urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
             print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
-            addDir(strTitle, urlToShowEpisodes,2,'icon.png')
+            imageUrl = strUrl + "/sagex/media/poster/" + dictOfTitlesAndMediaFileIds[strTitle]
+            print "ADDING imageUrl=" + imageUrl
+            addDir(strTitle, urlToShowEpisodes,2,imageUrl)
 
 def VIDEOLINKS(url,name):
         #Videolinks gets called immediately after adddir, so the timeline is categories, adddir, and then videolinks
@@ -145,8 +154,10 @@ def addDir(name,url,mode,iconimage):
         ok=True
         liz=xbmcgui.ListItem(name)
         liz.setInfo(type="video", infoLabels={ "Title": name } )
-        liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
-        liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+        liz.setIconImage(iconimage)
+        liz.setThumbnailImage(iconimage)
+        #liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+        #liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
         return ok
         
