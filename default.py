@@ -39,9 +39,9 @@ def CATEGORIES():
               for shownode1 in shownode.childNodes:
                 if shownode1.nodeName == 'mediafile':
                   strMediaFileId = shownode1.getAttribute('sageDbId')
- 			  
+				  
             if(strTitle<>""):
-				dictOfTitlesAndMediaFileIds[strTitle] = strMediaFileId
+              dictOfTitlesAndMediaFileIds[strTitle] = strMediaFileId
 			
         for strTitle in dictOfTitlesAndMediaFileIds:
             urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
@@ -61,6 +61,7 @@ def VIDEOLINKS(url,name):
           strEpisode = ''
           strDescription = ''
           strGenre = ''
+          strOriginalAirdate = ''
           strAirdate = ''
           strMediaFileID = ''
           for shownode in showlist.childNodes:
@@ -90,10 +91,10 @@ def VIDEOLINKS(url,name):
               strGenre = strGenre.replace('&amp;','&')
             # Get the airdate to use for Aired
             if shownode.nodeName == 'originalAirDate':
-              strAirdate = shownode.toxml()
-              strAirdate = strAirdate.replace('<originalAirDate>','')
-              strAirdate = strAirdate.replace('</originalAirDate>','')
-              strAirdate = strAirdate[:10]
+              strOriginalAirdate = shownode.toxml()
+              strOriginalAirdate = strAirdate.replace('<originalAirDate>','')
+              strOriginalAirdate = strAirdate.replace('</originalAirDate>','')
+              strOriginalAirdate = strAirdate[:10]
               # now that we have the title, episode, genre and description, create a showname string depending on which ones you have
               # if there is no episode name use the description in the title
             if len(strEpisode) == 0:
@@ -101,12 +102,15 @@ def VIDEOLINKS(url,name):
               strPlot = strDescription
               # else if there is an episode use that
             elif len(strEpisode) > 0:
-              if name == 'All Shows' or name == 'Sports': 
+              if name == '[All Shows]' or name == 'Sports': 
                 strShowname = strTitle+' - '+strEpisode
-              elif name != 'All Shows' and name != 'Sports':
+              elif name != '[All Shows]' and name != 'Sports':
                 strShowname = strEpisode
               strPlot = strDescription
             if shownode.nodeName == 'airing':
+            # Get the airdate to use for Aired
+              strAirdate = shownode.getAttribute('startTime')
+              strAirdate = strAirdate[:10]
               for shownode1 in shownode.childNodes:
                 if shownode1.nodeName == 'mediafile':
                   strMediaFileID = shownode1.getAttribute('sageDbId')
