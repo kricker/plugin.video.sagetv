@@ -245,5 +245,6 @@ elif mode==2:
 
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 xbmcplugin.setContent(int(sys.argv[1]),'episodes')
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
