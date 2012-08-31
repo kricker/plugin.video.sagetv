@@ -45,9 +45,9 @@ def CATEGORIES():
 			
         for strTitle in dictOfTitlesAndMediaFileIds:
             urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
-            print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
+            #print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
             imageUrl = strUrl + "/sagex/media/poster/" + dictOfTitlesAndMediaFileIds[strTitle]
-            print "ADDING imageUrl=" + imageUrl
+            #print "ADDING imageUrl=" + imageUrl
             addDir(strTitle, urlToShowEpisodes,2,imageUrl)
 
 def VIDEOLINKS(url,name):
@@ -62,7 +62,7 @@ def VIDEOLINKS(url,name):
           strDescription = ''
           strGenre = ''
           strOriginalAirdate = ''
-          strAirdate = ''
+          strAiringdate = ''
           strMediaFileID = ''
           for shownode in showlist.childNodes:
             # Get the title of the show
@@ -92,9 +92,9 @@ def VIDEOLINKS(url,name):
             # Get the airdate to use for Aired
             if shownode.nodeName == 'originalAirDate':
               strOriginalAirdate = shownode.toxml()
-              strOriginalAirdate = strAirdate.replace('<originalAirDate>','')
-              strOriginalAirdate = strAirdate.replace('</originalAirDate>','')
-              strOriginalAirdate = strAirdate[:10]
+              strOriginalAirdate = strOriginalAirdate.replace('<originalAirDate>','')
+              strOriginalAirdate = strOriginalAirdate.replace('</originalAirDate>','')
+              strOriginalAirdate = strOriginalAirdate[:10]
               # now that we have the title, episode, genre and description, create a showname string depending on which ones you have
               # if there is no episode name use the description in the title
             if len(strEpisode) == 0:
@@ -109,8 +109,8 @@ def VIDEOLINKS(url,name):
               strPlot = strDescription
             if shownode.nodeName == 'airing':
             # Get the airdate to use for Aired
-              strAirdate = shownode.getAttribute('startTime')
-              strAirdate = strAirdate[:10]
+              strAiringdate = shownode.getAttribute('startTime')
+              strAiringdate = strAiringdate[:10]
               for shownode1 in shownode.childNodes:
                 if shownode1.nodeName == 'mediafile':
                   strMediaFileID = shownode1.getAttribute('sageDbId')
@@ -118,7 +118,7 @@ def VIDEOLINKS(url,name):
                     if shownode2.nodeName == 'segmentList':
                       shownode3 =  shownode2.childNodes[1]
                       strFilepath = shownode3.getAttribute('filePath')
-                      addLink(strShowname,strFilepath.replace(sage_rec, sage_unc),strPlot,'',strGenre,strAirdate,strTitle,strMediaFileID)
+                      addLink(strShowname,strFilepath.replace(sage_rec, sage_unc),strPlot,'',strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID)
 
 def get_params():
         param=[]
@@ -138,20 +138,53 @@ def get_params():
                                 
         return param
 
-def addLink(name,url,plot,iconimage,genre,airdate,showtitle,fileid):
+def addLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,fileid):
         ok=True
         liz=xbmcgui.ListItem(name)
-        strDelete = strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + fileid
-        liz.addContextMenuItems([('Delete Show', 'PlayMedia(' + strDelete + ')',)])
-        datesplit = airdate.split('-')
+        #liz.addContextMenuItems([('Delete Show', 'PlayMedia(' + strDelete + ')',)]
+        #liz.addContextMenuItems([('Delete Show', 'PlayMedia(' + strDelete + ')'), ('Refresh Episode List', 'Container.Refresh')])
+        scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
+        actionDelete = "delete|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + fileid
+        actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + fileid
+        bisAiringRecording = isAiringRecording(fileid)
+        print "isAiringRecording=" + bisAiringRecording
+        if(bisAiringRecording == "true"):
+          liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
+        else:
+          liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')')], True)
+        datesplit = originalairingdate.split('-')
         try:
-            date = datesplit[2]+'.'+datesplit[1]+'.'+datesplit[0]
+            originalairingdate = datesplit[2]+'.'+datesplit[1]+'.'+datesplit[0]
         except:
-            date = "01.01.1900"
-        liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": date, "aired": airdate, "TVShowTitle": showtitle } )
+            originalairingdate = "01.01.1900"
+        datesplit = airingdate.split('-')
+        try:
+            airingdate = datesplit[2]+'.'+datesplit[1]+'.'+datesplit[0]
+        except:
+            airingdate = "01.01.1900"
+        liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": airingdate, "TVShowTitle": showtitle } )
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
+# Checks if an airing is currently recording (accepts an AiringID as a string as input)
+def isAiringRecording(mediafileid):
+	sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=mediafile:' + mediafileid
+	print "sageApiUrl=" + sageApiUrl
+	return executeSagexAPICall(sageApiUrl, "Result")
+		
+def executeSagexAPICall(url, resultToGet):
+	#Log.Debug('*** sagex request URL: %s' % url)
+	try:
+		input = urllib.urlopen(url)
+	except IOError, i:
+		print "ERROR in executeSagexAPICall: Unable to connect to SageTV server"
+		return None
+
+	content = parse(input)
+	result = content.getElementsByTagName(resultToGet)[0].toxml()
+	result = result.replace("<" + resultToGet + ">","")
+	result = result.replace("</" + resultToGet + ">","")
+	return result
 
 def addDir(name,url,mode,iconimage):
         u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
