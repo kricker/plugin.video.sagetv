@@ -18,14 +18,17 @@ strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.g
 def CATEGORIES():
  
         iconImage = xbmc.translatePath(os.path.join(__cwd__,'resources','media','icon.png'))
-        addDir('[All Shows]', strUrl + '/sage/Recordings?xml=yes',2,iconImage)
+        addDir('[All Shows]', strUrl + '/sage/Recordings?xml=yes',2,iconImage,'')
         req = urllib.urlopen(strUrl + '/sage/Recordings?xml=yes')
         content = parse(req)
         dictOfTitlesAndMediaFileIds = {}
+        dictOfTitlesAndExternalIds = {}
         for showlist in content.getElementsByTagName('show'):
           strTitle = ''
           strMediaFileId = ''
+          strExternalId = ''
           for shownode in showlist.childNodes:
+            strExternalId = showlist.getAttribute('epgId')
             # Get the title of the show
             if shownode.nodeName == 'title':
               strTitle = shownode.toxml()
@@ -42,13 +45,14 @@ def CATEGORIES():
 				  
             if(strTitle<>""):
               dictOfTitlesAndMediaFileIds[strTitle] = strMediaFileId
+              dictOfTitlesAndExternalIds[strTitle] = strExternalId
 			
         for strTitle in dictOfTitlesAndMediaFileIds:
             urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
             print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
             imageUrl = strUrl + "/sagex/media/poster/" + dictOfTitlesAndMediaFileIds[strTitle]
             #print "ADDING imageUrl=" + imageUrl
-            addDir(strTitle, urlToShowEpisodes,2,imageUrl)
+            addDir(strTitle, urlToShowEpisodes,2,imageUrl,dictOfTitlesAndExternalIds[strTitle])
 
 def VIDEOLINKS(url,name):
         #Videolinks gets called immediately after adddir, so the timeline is categories, adddir, and then videolinks
@@ -159,10 +163,17 @@ def addLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitl
         scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
         actionDelete = "delete|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
+        actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
         bisAiringRecording = isAiringRecording(mediafileid)
+        bisFavorite = isFavorite(mediafileid)
         if(bisAiringRecording == "true"):
-          liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
+          if(bisFavorite == "true"):
+            liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+          else:
+            liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
         else:
+          if(bisFavorite == "true"):
+            liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
           liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')')], True)
         datesplit = originalairingdate.split('-')
         try:
@@ -180,9 +191,19 @@ def addLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitl
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
-# Checks if an airing is currently recording (accepts an AiringID as a string as input)
+# Checks if an airing is currently recording
 def isAiringRecording(mediafileid):
 	sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=mediafile:' + mediafileid
+	return executeSagexAPICall(sageApiUrl, "Result")
+		
+# Checks if an airing has a favorite set up for it
+def isFavorite(mediafileid):
+	sageApiUrl = strUrl + '/sagex/api?command=IsFavorite&1=mediafile:' + mediafileid
+	return executeSagexAPICall(sageApiUrl, "Result")
+		
+# Checks if an airing has a favorite set up for it
+def getShowSeriesDescription(showexternalid):
+	sageApiUrl = strUrl + '/sagex/api?command=EvaluateExpression&1=GetSeriesDescription(GetShowSeriesInfo(GetShowForExternalID("' + showexternalid + '")))'
 	return executeSagexAPICall(sageApiUrl, "Result")
 		
 def executeSagexAPICall(url, resultToGet):
@@ -198,13 +219,19 @@ def executeSagexAPICall(url, resultToGet):
 	result = content.getElementsByTagName(resultToGet)[0].toxml()
 	result = result.replace("<" + resultToGet + ">","")
 	result = result.replace("</" + resultToGet + ">","")
+	result = result.replace("<![CDATA[","")
+	result = result.replace("]]>","")
+	result = result.replace("<Result/>","")
 	return result
 
-def addDir(name,url,mode,iconimage):
+def addDir(name,url,mode,iconimage,showexternalid):
         u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
         ok=True
         liz=xbmcgui.ListItem(name)
-        liz.setInfo(type="video", infoLabels={ "Title": name } )
+        strSeriesDescription = ""
+        strSeriesDescription = getShowSeriesDescription(showexternalid)
+		
+        liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": strSeriesDescription } )
         liz.setIconImage(iconimage)
         liz.setThumbnailImage(iconimage)
         #liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
