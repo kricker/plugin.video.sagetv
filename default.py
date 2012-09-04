@@ -179,7 +179,7 @@ def addLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitl
         try:
             originalairingdate = datesplit[2]+'.'+datesplit[1]+'.'+datesplit[0]
         except:
-            originalairingdate = "01.01.1900"
+            originalairingdate = ""
         datesplit = airingdate.split('-')
         try:
             airingdate = datesplit[2]+'.'+datesplit[1]+'.'+datesplit[0]
@@ -187,7 +187,7 @@ def addLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitl
             airingdate = "01.01.1900"
         seasonnum = int(executeSagexAPICall(strUrl + '/sagex/api?command=GetShowSeasonNumber&1=airing:' + airingid, "Result"))
         episodenum = int(executeSagexAPICall(strUrl + '/sagex/api?command=GetShowEpisodeNumber&1=airing:' + airingid, "Result"))
-        liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": airingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum } )
+        liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum } )
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
