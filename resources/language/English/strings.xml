@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
     <!-- SABnzbd Settings-->
-    <string id="20000">SageTV IP address</string>
+    <string id="20000">SageTV Server Address</string>
     <string id="20001">SageTV Webserver Port</string>
     <string id="20002">SageTV Webserver Username</string>
     <string id="20003">SageTV Webserver Password</string>

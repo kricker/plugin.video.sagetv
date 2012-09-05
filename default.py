@@ -1,8 +1,12 @@
 import urllib,urllib2,re
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 import os
+import simplejson as json
 import unicodedata
+import time
 from xml.dom.minidom import parse
+from time import strftime
+from datetime import date
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
 __language__ = __settings__.getLocalizedString
@@ -14,45 +18,51 @@ sage_unc = __settings__.getSetting("sage_unc")
 
 # SageTV URL based on user settings
 strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.getSetting("sage_pass") + '@' + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
+iconImage = xbmc.translatePath(os.path.join(__cwd__,'resources','media','icon.png'))
+DEFAULT_CHARSET = 'utf-8'
 
-def CATEGORIES():
+def TOPLEVELCATEGORIES():
  
-        iconImage = xbmc.translatePath(os.path.join(__cwd__,'resources','media','icon.png'))
-        addDir('[All Shows]', strUrl + '/sage/Recordings?xml=yes',2,iconImage,'')
-        req = urllib.urlopen(strUrl + '/sage/Recordings?xml=yes')
-        content = parse(req)
-        dictOfTitlesAndMediaFileIds = {}
-        dictOfTitlesAndExternalIds = {}
-        for showlist in content.getElementsByTagName('show'):
-          strTitle = ''
-          strMediaFileId = ''
-          strExternalId = ''
-          for shownode in showlist.childNodes:
-            strExternalId = showlist.getAttribute('epgId')
-            # Get the title of the show
-            if shownode.nodeName == 'title':
-              strTitle = shownode.toxml()
-              strTitle = strTitle.replace('<title>','')
-              strTitle = strTitle.replace('</title>','')
-              strTitle = strTitle.replace('&amp;','&')
-              strTitle = strTitle.replace('&quot;','"')
-              strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
-            # Get the mediafileid of the show
-            if shownode.nodeName == 'airing':
-              for shownode1 in shownode.childNodes:
-                if shownode1.nodeName == 'mediafile':
-                  strMediaFileId = shownode1.getAttribute('sageDbId')
-				  
-            if(strTitle<>""):
-              dictOfTitlesAndMediaFileIds[strTitle] = strMediaFileId
-              dictOfTitlesAndExternalIds[strTitle] = strExternalId
-			
-        for strTitle in dictOfTitlesAndMediaFileIds:
-            urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
-            print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
-            imageUrl = strUrl + "/sagex/media/poster/" + dictOfTitlesAndMediaFileIds[strTitle]
-            #print "ADDING imageUrl=" + imageUrl
-            addDir(strTitle, urlToShowEpisodes,2,imageUrl,dictOfTitlesAndExternalIds[strTitle])
+	addTopLevelDir('[Watch Recordings]', strUrl + '/',1,iconImage,'Browse previously recorded and currently recording shows')
+	addTopLevelDir('[View Upcoming Recordings]', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,iconImage,'View and manage your upcoming recording schedule')
+	
+def WATCHRECORDINGS(url,name):
+	#Get the list of Recorded shows
+	addDir('[All Shows]', strUrl + '/sage/Recordings?xml=yes',11,iconImage,'')
+	req = urllib.urlopen(strUrl + '/sage/Recordings?xml=yes')
+	content = parse(req)
+	dictOfTitlesAndMediaFileIds = {}
+	dictOfTitlesAndExternalIds = {}
+	for showlist in content.getElementsByTagName('show'):
+		strTitle = ''
+		strMediaFileId = ''
+		strExternalId = ''
+		for shownode in showlist.childNodes:
+			strExternalId = showlist.getAttribute('epgId')
+			# Get the title of the show
+			if shownode.nodeName == 'title':
+				strTitle = shownode.toxml()
+				strTitle = strTitle.replace('<title>','')
+				strTitle = strTitle.replace('</title>','')
+				strTitle = strTitle.replace('&amp;','&')
+				strTitle = strTitle.replace('&quot;','"')
+				strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+			# Get the mediafileid of the show
+			if shownode.nodeName == 'airing':
+				for shownode1 in shownode.childNodes:
+					if shownode1.nodeName == 'mediafile':
+						strMediaFileId = shownode1.getAttribute('sageDbId')
+
+			if(strTitle<>""):
+				dictOfTitlesAndMediaFileIds[strTitle] = strMediaFileId
+				dictOfTitlesAndExternalIds[strTitle] = strExternalId
+
+	for strTitle in dictOfTitlesAndMediaFileIds:
+		urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
+		print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
+		imageUrl = strUrl + "/sagex/media/poster/" + dictOfTitlesAndMediaFileIds[strTitle]
+		#print "ADDING imageUrl=" + imageUrl
+		addDir(strTitle, urlToShowEpisodes,11,imageUrl,dictOfTitlesAndExternalIds[strTitle])
 
 def VIDEOLINKS(url,name):
         #Videolinks gets called immediately after adddir, so the timeline is categories, adddir, and then videolinks
@@ -135,7 +145,43 @@ def VIDEOLINKS(url,name):
                     if shownode2.nodeName == 'segmentList':
                       shownode3 =  shownode2.childNodes[1]
                       strFilepath = shownode3.getAttribute('filePath')
-                      addLink(strShowname,strFilepath.replace(sage_rec, sage_unc),strPlot,'',strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID)
+                      addMediafileLink(strShowname,strFilepath.replace(sage_rec, sage_unc),strPlot,'',strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID)
+
+def VIEWUPCOMINGRECORDINGS(url,name):
+	#req = urllib.urlopen(url)
+	airings = executeSagexAPIJSONCall(url, "Result")
+	for airing in airings:
+		show = airing.get("Show")
+		strTitle = airing.get("AiringTitle")
+		strEpisode = show.get("ShowEpisode")
+		if(strEpisode == None):
+			strEpisode = ""		
+		strDescription = show.get("ShowDescription")
+		if(strDescription == None):
+			strDescription = ""		
+		strGenre = show.get("ShowCategoriesString")
+		strAiringID = str(airing.get("AiringID"))
+		seasonNum = int(show.get("ShowSeasonNumber"))
+		episodeNum = int(show.get("ShowEpisodeNumber"))
+		
+		startTime = float(airing.get("AiringStartTime") // 1000)
+		strAiringdateObject = date.fromtimestamp(startTime)
+		airTime = strftime('%H:%M', time.localtime(startTime))
+		strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.month, strAiringdateObject.day, strAiringdateObject.year)
+		strOriginalAirdate = strAiringdate
+		if(airing.get("OriginalAiringDate")):
+			startTime = float(airing.get("OriginalAiringDate") // 1000)
+			strOriginalAirdate = date.fromtimestamp(startTime)
+			strOriginalAirdate = str(strOriginalAirdate.month) + '.' + str(strOriginalAirdate.day) + '.' + str(strOriginalAirdate.year)
+
+		# if there is no episode name use the description in the title
+		if(strEpisode == ""):
+			strDisplayText = strTitle + ' - ' + strDescription
+		# else if there is an episode use that
+		else:
+			strDisplayText = strTitle + ' - ' + strEpisode
+		strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
+		addAiringLink(strDisplayText,'',strDescription,'',strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum)
 
 def get_params():
         param=[]
@@ -155,17 +201,15 @@ def get_params():
                                 
         return param
 
-def addLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid):
+def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid):
         ok=True
         liz=xbmcgui.ListItem(name)
-        #liz.addContextMenuItems([('Delete Show', 'PlayMedia(' + strDelete + ')',)]
-        #liz.addContextMenuItems([('Delete Show', 'PlayMedia(' + strDelete + ')'), ('Refresh Episode List', 'Container.Refresh')])
         scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
         actionDelete = "delete|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
         actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
-        bisAiringRecording = isAiringRecording(mediafileid)
-        bisFavorite = isFavorite(mediafileid)
+        bisAiringRecording = isAiringRecording(airingid)
+        bisFavorite = isFavorite(airingid)
         if(bisAiringRecording == "true"):
           if(bisFavorite == "true"):
             liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
@@ -191,14 +235,28 @@ def addLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitl
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
+def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,airingid,seasonnum,episodenum):
+	ok=True
+	liz=xbmcgui.ListItem(name)
+	scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
+	#actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
+	actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
+	bisFavorite = isFavorite(airingid)
+	if(bisFavorite == "true"):
+		liz.addContextMenuItems([('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+	print "originalairingdate=" + originalairingdate + ";airingdate=" + airingdate
+	liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum } )
+	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
+	return ok
+
 # Checks if an airing is currently recording
-def isAiringRecording(mediafileid):
-	sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=mediafile:' + mediafileid
+def isAiringRecording(airingid):
+	sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=airing:' + airingid
 	return executeSagexAPICall(sageApiUrl, "Result")
 		
 # Checks if an airing has a favorite set up for it
-def isFavorite(mediafileid):
-	sageApiUrl = strUrl + '/sagex/api?command=IsFavorite&1=mediafile:' + mediafileid
+def isFavorite(airingid):
+	sageApiUrl = strUrl + '/sagex/api?command=IsFavorite&1=airing:' + airingid
 	return executeSagexAPICall(sageApiUrl, "Result")
 		
 # Checks if an airing has a favorite set up for it
@@ -224,22 +282,70 @@ def executeSagexAPICall(url, resultToGet):
 	result = result.replace("<Result/>","")
 	return result
 
+def executeSagexAPIJSONCall(url, resultToGet):
+	print "*** sagex request URL:" + url
+	try:
+		input = urllib.urlopen(url)
+	except IOError, i:
+		print "ERROR in executeSagexAPIJSONCall: Unable to connect to SageTV server"
+		return None
+	fileData = input.read()
+	resp = unicodeToStr(json.JSONDecoder().decode(fileData))
+
+	objKeys = resp.keys()
+	numKeys = len(objKeys)
+	if(numKeys == 1):
+		return resp.get(resultToGet)
+	else:
+		return None
+
+def addTopLevelDir(name,url,mode,iconimage,dirdescription):
+	u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+	ok=True
+	liz=xbmcgui.ListItem(name)
+
+	liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": dirdescription } )
+	liz.setIconImage(iconimage)
+	liz.setThumbnailImage(iconimage)
+	#liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+	#liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
+	return ok
+
 def addDir(name,url,mode,iconimage,showexternalid):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
-        ok=True
-        liz=xbmcgui.ListItem(name)
-        strSeriesDescription = ""
-        strSeriesDescription = getShowSeriesDescription(showexternalid)
-		
-        liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": strSeriesDescription } )
-        liz.setIconImage(iconimage)
-        liz.setThumbnailImage(iconimage)
-        #liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
-        #liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
-        return ok
-        
-              
+	u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+	ok=True
+	liz=xbmcgui.ListItem(name)
+	strSeriesDescription = ""
+	strSeriesDescription = getShowSeriesDescription(showexternalid)
+
+	liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": strSeriesDescription } )
+	liz.setIconImage(iconimage)
+	liz.setThumbnailImage(iconimage)
+	#liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+	#liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
+	return ok
+
+
+def unicodeToStr(obj):
+	t = obj
+	if(t is unicode):
+		return obj.encode(DEFAULT_CHARSET)
+	elif(t is list):
+		for i in range(0, len(obj)):
+			obj[i] = unicodeToStr(obj[i])
+		return obj
+	elif(t is dict):
+		for k in obj.keys():
+			v = obj[k]
+			del obj[k]
+			obj[k.encode(DEFAULT_CHARSET)] = unicodeToStr(v)
+		return obj
+	else:
+		return obj # leave numbers and booleans alone
+
+	
 params=get_params()
 url=None
 name=None
@@ -260,15 +366,19 @@ except:
 
 if mode==None or url==None or len(url)<1:
         print ""
-        CATEGORIES()
+        TOPLEVELCATEGORIES()
        
 elif mode==1:
         print ""+url
-        INDEX(url)
+        WATCHRECORDINGS(url,name)
+        
+elif mode==11:
+        print ""+url
+        VIDEOLINKS(url,name)
         
 elif mode==2:
         print ""+url
-        VIDEOLINKS(url,name)
+        VIEWUPCOMINGRECORDINGS(url,name)
 
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
