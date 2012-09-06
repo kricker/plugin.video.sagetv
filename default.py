@@ -186,11 +186,14 @@ def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,sh
 	ok=True
 	liz=xbmcgui.ListItem(name)
 	scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
-	#actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
+	actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=airing:' + airingid
 	actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
 	bisFavorite = isFavorite(airingid)
 	if(bisFavorite == "true"):
-		liz.addContextMenuItems([('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+		liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+	else:
+		liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
+		
 	print "originalairingdate=" + originalairingdate + ";airingdate=" + airingdate
 	liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio } )
 	liz.setIconImage(iconimage)
