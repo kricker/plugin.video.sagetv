@@ -25,6 +25,7 @@ def TOPLEVELCATEGORIES():
  
 	addTopLevelDir('[1. Watch Recordings]', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,iconImage,'Browse previously recorded and currently recording shows')
 	addTopLevelDir('[2. View Upcoming Recordings]', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,iconImage,'View and manage your upcoming recording schedule')
+	addTopLevelDir('[3. Browse Channel Listings]', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,iconImage,'Browse channels and manage recordings')
 	
 def VIEWLISTOFRECORDEDSHOWS(url,name):
 	#Get the list of Recorded shows
@@ -74,6 +75,7 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
 		seasonNum = int(show.get("ShowSeasonNumber"))
 		episodeNum = int(show.get("ShowEpisodeNumber"))
 		studio = airing.get("AiringChannelName")
+		isFavorite = airing.get("IsFavorite")
 		
 		startTime = float(airing.get("AiringStartTime") // 1000)
 		strAiringdateObject = date.fromtimestamp(startTime)
@@ -97,7 +99,7 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
 		
 		imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
 		print "strOriginalAirdate=" + strOriginalAirdate + ";strAiringdate" + strAiringdate
-		addMediafileLink(strDisplayText,strFilepath.replace(sage_rec, sage_unc),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio)
+		addMediafileLink(strDisplayText,strFilepath.replace(sage_rec, sage_unc),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
 def VIEWUPCOMINGRECORDINGS(url,name):
 	#req = urllib.urlopen(url)
@@ -116,7 +118,7 @@ def VIEWUPCOMINGRECORDINGS(url,name):
 		seasonNum = int(show.get("ShowSeasonNumber"))
 		episodeNum = int(show.get("ShowEpisodeNumber"))
 		studio = airing.get("AiringChannelName")
-		
+		isFavorite = airing.get("IsFavorite")
 		
 		startTime = float(airing.get("AiringStartTime") // 1000)
 		strAiringdateObject = date.fromtimestamp(startTime)
@@ -137,7 +139,66 @@ def VIEWUPCOMINGRECORDINGS(url,name):
 		else:
 			strDisplayText = strTitle + ' - ' + strEpisode
 		strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-		addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio)
+		addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+
+def VIEWCHANNELLISTING(url,name):
+	channels = executeSagexAPIJSONCall(url, "Result")
+	for channel in channels:
+		channelNumber = channel.get("ChannelNumber")
+		channelName = channel.get("ChannelName")
+		channelDescription = channel.get("ChannelDescription")
+		channelNetwork = channel.get("ChannelNetwork")
+		channelStationID = channel.get("StationID")
+		now = time.time()
+		startRange = str(long(now * 1000))
+		rangeSizeDays = 7
+		rangeSizeSeconds = rangeSizeDays * 24 * 60 * 60
+		endRange = str(long((now + rangeSizeSeconds) * 1000))
+
+		urlToAiringsOnChannel = strUrl + '/sagex/api?command=EvaluateExpression&1=GetAiringsOnChannelAtTime(GetChannelForStationID("' + str(channelStationID) + '"),"' + startRange + '","' + endRange + '",false)&encoder=json'
+		logoUrl = strUrl + "/sagex/media/logo/" + str(channelStationID)
+		strDisplayText = channelNumber + "-" + channelName
+		addChannelDir(strDisplayText, urlToAiringsOnChannel,31,logoUrl,channelDescription)
+
+def VIEWAIRINGSONCHANNEL(url,name):
+	#req = urllib.urlopen(url)
+	airings = executeSagexAPIJSONCall(url, "Result")
+	for airing in airings:
+		show = airing.get("Show")
+		strTitle = airing.get("AiringTitle")
+		strEpisode = show.get("ShowEpisode")
+		if(strEpisode == None):
+			strEpisode = ""		
+		strDescription = show.get("ShowDescription")
+		if(strDescription == None):
+			strDescription = ""		
+		strGenre = show.get("ShowCategoriesString")
+		strAiringID = str(airing.get("AiringID"))
+		seasonNum = int(show.get("ShowSeasonNumber"))
+		episodeNum = int(show.get("ShowEpisodeNumber"))
+		studio = airing.get("AiringChannelName")		
+		isFavorite = airing.get("IsFavorite")
+		
+		startTime = float(airing.get("AiringStartTime") // 1000)
+		strAiringdateObject = date.fromtimestamp(startTime)
+		airTime = strftime('%H:%M', time.localtime(startTime))
+		strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.day, strAiringdateObject.month, strAiringdateObject.year)
+		strOriginalAirdate = strAiringdate
+		if(airing.get("OriginalAiringDate")):
+			startTime = float(airing.get("OriginalAiringDate") // 1000)
+			strOriginalAirdateObject = date.fromtimestamp(startTime)
+			strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
+
+		# if there is no episode name use the description in the title
+		if(strEpisode == "" and strDescription == ""):
+			strDisplayText = strTitle
+		elif(strEpisode == ""):
+			strDisplayText = strTitle + ' - ' + strDescription
+		# else if there is an episode use that
+		else:
+			strDisplayText = strTitle + ' - ' + strEpisode
+		strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
+		addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
 def get_params():
         param=[]
@@ -157,7 +218,7 @@ def get_params():
                                 
         return param
 
-def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid,seasonnum,episodenum,studio):
+def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid,seasonnum,episodenum,studio,isfavorite):
         ok=True
         liz=xbmcgui.ListItem(name)
         scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
@@ -165,14 +226,14 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
         actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
         bisAiringRecording = isAiringRecording(airingid)
-        bisFavorite = isFavorite(airingid)
-        if(bisAiringRecording == "true"):
-          if(bisFavorite == "true"):
+
+        if(bisAiringRecording):
+          if(isfavorite):
             liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
           else:
             liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
         else:
-          if(bisFavorite == "true"):
+          if(isfavorite):
             liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
           liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')')], True)
 
@@ -182,19 +243,27 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
-def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,airingid,seasonnum,episodenum,studio):
+def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,airingid,seasonnum,episodenum,studio,isfavorite):
 	ok=True
 	liz=xbmcgui.ListItem(name)
 	scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
 	actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=airing:' + airingid
 	actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
-	bisFavorite = isFavorite(airingid)
-	if(bisFavorite == "true"):
-		liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+	actionRecord = "record|" + strUrl + '/sagex/api?command=Record&1=airing:' + airingid
+	
+	bisAiringScheduledToRecord = isAiringScheduledToRecord(airingid)
+	
+	if(bisAiringScheduledToRecord):
+		if(isfavorite):
+			liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+		else:
+			liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
 	else:
-		liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
-		
-	print "originalairingdate=" + originalairingdate + ";airingdate=" + airingdate
+		if(isfavorite):
+			liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+		else:
+			liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
+
 	liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio } )
 	liz.setIconImage(iconimage)
 	liz.setThumbnailImage(iconimage)
@@ -202,38 +271,19 @@ def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,sh
 	return ok
 
 # Checks if an airing is currently recording
-def isAiringRecording(airingid):
-	sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=airing:' + airingid
-	return executeSagexAPICall(sageApiUrl, "Result")
+def isAiringScheduledToRecord(airingid):
+	sageApiUrl = strUrl + '/sagex/api?command=EvaluateExpression&1=java_util_HashSet_contains(new_java_util_HashSet(java_util_Arrays_asList(GetScheduledRecordings())),GetAiringForID(' + airingid + '))&encoder=json'
+	return executeSagexAPIJSONCall(sageApiUrl, "Result")
 		
-# Checks if an airing has a favorite set up for it
-def isFavorite(airingid):
-	sageApiUrl = strUrl + '/sagex/api?command=IsFavorite&1=airing:' + airingid
-	return executeSagexAPICall(sageApiUrl, "Result")
+def isAiringRecording(airingid):
+	sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=airing:' + airingid + '&encoder=json'
+	return executeSagexAPIJSONCall(sageApiUrl, "Result")
 		
 # Checks if an airing has a favorite set up for it
 def getShowSeriesDescription(showexternalid):
-	sageApiUrl = strUrl + '/sagex/api?command=EvaluateExpression&1=GetSeriesDescription(GetShowSeriesInfo(GetShowForExternalID("' + showexternalid + '")))'
-	return executeSagexAPICall(sageApiUrl, "Result")
+	sageApiUrl = strUrl + '/sagex/api?command=EvaluateExpression&1=GetSeriesDescription(GetShowSeriesInfo(GetShowForExternalID("' + showexternalid + '")))&encoder=json'
+	return executeSagexAPIJSONCall(sageApiUrl, "Result")
 		
-def executeSagexAPICall(url, resultToGet):
-	#Log.Debug('*** sagex request URL: %s' % url)
-	try:
-		print "CALLING sageApiUrl=" + url
-		input = urllib.urlopen(url)
-	except IOError, i:
-		print "ERROR in executeSagexAPICall: Unable to connect to SageTV server"
-		return None
-
-	content = parse(input)
-	result = content.getElementsByTagName(resultToGet)[0].toxml()
-	result = result.replace("<" + resultToGet + ">","")
-	result = result.replace("</" + resultToGet + ">","")
-	result = result.replace("<![CDATA[","")
-	result = result.replace("]]>","")
-	result = result.replace("<Result/>","")
-	return result
-
 def executeSagexAPIJSONCall(url, resultToGet):
 	print "*** sagex request URL:" + url
 	try:
@@ -276,6 +326,17 @@ def addDir(name,url,mode,iconimage,showexternalid):
 	liz.setThumbnailImage(iconimage)
 	#liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
 	#liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
+	return ok
+
+def addChannelDir(name,url,mode,iconimage,channeldescription):
+	u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+	ok=True
+	liz=xbmcgui.ListItem(name)
+
+	liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": channeldescription } )
+	liz.setIconImage(iconimage)
+	liz.setThumbnailImage(iconimage)
 	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
 	return ok
 
@@ -331,6 +392,14 @@ elif mode==11:
 elif mode==2:
         print ""+url
         VIEWUPCOMINGRECORDINGS(url,name)
+
+elif mode==3:
+        print ""+url
+        VIEWCHANNELLISTING(url,name)
+
+elif mode==31:
+        print ""+url
+        VIEWAIRINGSONCHANNEL(url,name)
 
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)

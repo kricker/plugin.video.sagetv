@@ -3,8 +3,7 @@ import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 
 #Get the passed in argument from the addContextMenuItems() call in default.py
 args = sys.argv[1].split("|")
-print "sys.argv[1]=" + sys.argv[1]
-if(args[0]== "delete" or args[0]== "cancelrecording" or args[0]== "removefavorite"):
+if(args[0] in ["delete","cancelrecording","removefavorite","record"]):
 	sageApiUrl = args[1]
 	urllib.urlopen(sageApiUrl)
 	xbmc.executebuiltin("Container.Refresh")
