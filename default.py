@@ -28,11 +28,11 @@ confluence_views = [500,501,502,503,504,508]
 
 def TOPLEVELCATEGORIES():
  
-	addTopLevelDir('[1. Watch Recordings]', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,iconImage,'Browse previously recorded and currently recording shows')
-	addTopLevelDir('[2. View Upcoming Recordings]', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,iconImage,'View and manage your upcoming recording schedule')
-	addTopLevelDir('[3. Browse Channel Listings]', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,iconImage,'Browse channels and manage recordings')
-	addTopLevelDir('[4. Search for Recordings]', strUrl + '/',4,iconImage,'Search for Recordings')
-	addTopLevelDir('[5. Search for Airings]', strUrl + '/',5,iconImage,'Search for Upcoming Airings')
+	addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,iconImage,'Browse previously recorded and currently recording shows')
+	addTopLevelDir('2. View Upcoming Recordings', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,iconImage,'View and manage your upcoming recording schedule')
+	addTopLevelDir('3. Browse Channel Listings', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,iconImage,'Browse channels and manage recordings')
+	addTopLevelDir('4. Search for Recordings', strUrl + '/',4,iconImage,'Search for Recordings')
+	addTopLevelDir('5. Search for Airings', strUrl + '/',5,iconImage,'Search for Upcoming Airings')
 
 	xbmc.executebuiltin("Container.SetViewMode(515)")
 	
