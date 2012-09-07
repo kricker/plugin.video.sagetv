@@ -1,5 +1,5 @@
 import urllib,urllib2,re
-import xbmc,xbmcplugin,xbmcgui,xbmcaddon
+import xbmc,xbmcplugin,xbmcgui,xbmcaddon,CommonFunctions
 import os
 import simplejson as json
 import unicodedata
@@ -7,6 +7,8 @@ import time
 from xml.dom.minidom import parse
 from time import strftime
 from datetime import date
+
+common = CommonFunctions
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
 __language__ = __settings__.getLocalizedString
@@ -26,6 +28,8 @@ def TOPLEVELCATEGORIES():
 	addTopLevelDir('[1. Watch Recordings]', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,iconImage,'Browse previously recorded and currently recording shows')
 	addTopLevelDir('[2. View Upcoming Recordings]', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,iconImage,'View and manage your upcoming recording schedule')
 	addTopLevelDir('[3. Browse Channel Listings]', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,iconImage,'Browse channels and manage recordings')
+	addTopLevelDir('[4. Search for Recordings]', strUrl + '/',4,iconImage,'Search for Recordings')
+	addTopLevelDir('[5. Search for Airings]', strUrl + '/',5,iconImage,'Search for Upcoming Airings')
 	
 def VIEWLISTOFRECORDEDSHOWS(url,name):
 	#Get the list of Recorded shows
@@ -161,7 +165,98 @@ def VIEWCHANNELLISTING(url,name):
 		addChannelDir(strDisplayText, urlToAiringsOnChannel,31,logoUrl,channelDescription)
 
 def VIEWAIRINGSONCHANNEL(url,name):
-	#req = urllib.urlopen(url)
+	airings = executeSagexAPIJSONCall(url, "Result")
+	for airing in airings:
+		show = airing.get("Show")
+		strTitle = airing.get("AiringTitle")
+		strEpisode = show.get("ShowEpisode")
+		if(strEpisode == None):
+			strEpisode = ""		
+		strDescription = show.get("ShowDescription")
+		if(strDescription == None):
+			strDescription = ""		
+		strGenre = show.get("ShowCategoriesString")
+		strAiringID = str(airing.get("AiringID"))
+		seasonNum = int(show.get("ShowSeasonNumber"))
+		episodeNum = int(show.get("ShowEpisodeNumber"))
+		studio = airing.get("AiringChannelName")		
+		isFavorite = airing.get("IsFavorite")
+		
+		startTime = float(airing.get("AiringStartTime") // 1000)
+		strAiringdateObject = date.fromtimestamp(startTime)
+		airTime = strftime('%H:%M', time.localtime(startTime))
+		strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.day, strAiringdateObject.month, strAiringdateObject.year)
+		strOriginalAirdate = strAiringdate
+		if(airing.get("OriginalAiringDate")):
+			startTime = float(airing.get("OriginalAiringDate") // 1000)
+			strOriginalAirdateObject = date.fromtimestamp(startTime)
+			strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
+
+		# if there is no episode name use the description in the title
+		if(strEpisode == "" and strDescription == ""):
+			strDisplayText = strTitle
+		elif(strEpisode == ""):
+			strDisplayText = strTitle + ' - ' + strDescription
+		# else if there is an episode use that
+		else:
+			strDisplayText = strTitle + ' - ' + strEpisode
+		strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
+		addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+
+def SEARCHFORRECORDINGS(url,name):
+	titleToSearchFor = common.getUserInput("Search","")
+	url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"), "GetMediaTitle", "' + urllib2.quote(titleToSearchFor.encode("utf8")) + '", true)&encoder=json'
+	mfs = executeSagexAPIJSONCall(url, "Result")
+	print "# of EPISODES for " + titleToSearchFor + "=" + str(len(mfs))
+	if(mfs == None or len(mfs) == 0):
+		print "NO EPISODES FOUND FOR SHOW=" + name
+		xbmcplugin.endOfDirectory(int(sys.argv[1]), updateListing=True)
+		return
+
+	for mf in mfs:
+		airing = mf.get("Airing")
+		show = airing.get("Show")
+		strMediaFileID = str(mf.get("MediaFileID"))
+		strTitle = airing.get("AiringTitle")
+		strEpisode = show.get("ShowEpisode")
+		if(strEpisode == None):
+			strEpisode = ""		
+		strDescription = show.get("ShowDescription")
+		if(strDescription == None):
+			strDescription = ""		
+		strGenre = show.get("ShowCategoriesString")
+		strAiringID = str(airing.get("AiringID"))
+		seasonNum = int(show.get("ShowSeasonNumber"))
+		episodeNum = int(show.get("ShowEpisodeNumber"))
+		studio = airing.get("AiringChannelName")
+		isFavorite = airing.get("IsFavorite")
+		
+		startTime = float(airing.get("AiringStartTime") // 1000)
+		strAiringdateObject = date.fromtimestamp(startTime)
+		airTime = strftime('%H:%M', time.localtime(startTime))
+		strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.day, strAiringdateObject.month, strAiringdateObject.year)
+		strOriginalAirdate = strAiringdate
+		if(airing.get("OriginalAiringDate")):
+			startTime = float(airing.get("OriginalAiringDate") // 1000)
+			strOriginalAirdateObject = date.fromtimestamp(startTime)
+			strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
+
+		# if there is no episode name use the description in the title
+		strDisplayText = strTitle + ' - ' + strEpisode
+		if(strEpisode == ""):
+			strDisplayText = strTitle + ' - ' + strDescription
+
+		strFilepath = mf.get("SegmentFiles")[0]
+		
+		imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
+		addMediafileLink(strDisplayText,strFilepath.replace(sage_rec, sage_unc),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+
+def SEARCHFORAIRINGS(url,name):
+	titleToSearchFor = common.getUserInput("Search","")
+	now = time.time()
+	startRange = str(long(now * 1000))
+	#url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime","%s",java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), startRange)
+	url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime",java_lang_Long_parseLong("%d"),java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), int(time.time()) * 1000)
 	airings = executeSagexAPIJSONCall(url, "Result")
 	for airing in airings:
 		show = airing.get("Show")
@@ -400,6 +495,14 @@ elif mode==3:
 elif mode==31:
         print ""+url
         VIEWAIRINGSONCHANNEL(url,name)
+
+elif mode==4:
+        print ""+url
+        SEARCHFORRECORDINGS(url,name)
+
+elif mode==5:
+        print ""+url
+        SEARCHFORAIRINGS(url,name)
 
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
