@@ -23,6 +23,9 @@ strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.g
 iconImage = xbmc.translatePath(os.path.join(__cwd__,'resources','media','icon.png'))
 DEFAULT_CHARSET = 'utf-8'
 
+# 500-THUMBNAIL 501/502/505/506/507/508-LIST 503-MINFO2 504-MINFO 515-MINFO3
+confluence_views = [500,501,502,503,504,508]
+
 def TOPLEVELCATEGORIES():
  
 	addTopLevelDir('[1. Watch Recordings]', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,iconImage,'Browse previously recorded and currently recording shows')
@@ -30,6 +33,8 @@ def TOPLEVELCATEGORIES():
 	addTopLevelDir('[3. Browse Channel Listings]', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,iconImage,'Browse channels and manage recordings')
 	addTopLevelDir('[4. Search for Recordings]', strUrl + '/',4,iconImage,'Search for Recordings')
 	addTopLevelDir('[5. Search for Airings]', strUrl + '/',5,iconImage,'Search for Upcoming Airings')
+
+	xbmc.executebuiltin("Container.SetViewMode(515)")
 	
 def VIEWLISTOFRECORDEDSHOWS(url,name):
 	#Get the list of Recorded shows
@@ -105,6 +110,8 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
 		print "strOriginalAirdate=" + strOriginalAirdate + ";strAiringdate" + strAiringdate
 		addMediafileLink(strDisplayText,strFilepath.replace(sage_rec, sage_unc),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
+	xbmc.executebuiltin("Container.SetViewMode(503)")
+
 def VIEWUPCOMINGRECORDINGS(url,name):
 	#req = urllib.urlopen(url)
 	airings = executeSagexAPIJSONCall(url, "Result")
@@ -145,6 +152,8 @@ def VIEWUPCOMINGRECORDINGS(url,name):
 		strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
 		addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
+	xbmc.executebuiltin("Container.SetViewMode(503)")
+
 def VIEWCHANNELLISTING(url,name):
 	channels = executeSagexAPIJSONCall(url, "Result")
 	for channel in channels:
@@ -163,6 +172,8 @@ def VIEWCHANNELLISTING(url,name):
 		logoUrl = strUrl + "/sagex/media/logo/" + str(channelStationID)
 		strDisplayText = channelNumber + "-" + channelName
 		addChannelDir(strDisplayText, urlToAiringsOnChannel,31,logoUrl,channelDescription)
+
+	xbmc.executebuiltin("Container.SetViewMode(515)")
 
 def VIEWAIRINGSONCHANNEL(url,name):
 	airings = executeSagexAPIJSONCall(url, "Result")
@@ -202,6 +213,8 @@ def VIEWAIRINGSONCHANNEL(url,name):
 			strDisplayText = strTitle + ' - ' + strEpisode
 		strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
 		addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+
+	xbmc.executebuiltin("Container.SetViewMode(503)")
 
 def SEARCHFORRECORDINGS(url,name):
 	titleToSearchFor = common.getUserInput("Search","")
@@ -251,6 +264,8 @@ def SEARCHFORRECORDINGS(url,name):
 		imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
 		addMediafileLink(strDisplayText,strFilepath.replace(sage_rec, sage_unc),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
+	xbmc.executebuiltin("Container.SetViewMode(503)")
+
 def SEARCHFORAIRINGS(url,name):
 	titleToSearchFor = common.getUserInput("Search","")
 	now = time.time()
@@ -294,6 +309,8 @@ def SEARCHFORAIRINGS(url,name):
 			strDisplayText = strTitle + ' - ' + strEpisode
 		strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
 		addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+
+	xbmc.executebuiltin("Container.SetViewMode(503)")
 
 def get_params():
         param=[]
