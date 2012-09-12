@@ -494,35 +494,49 @@ if mode==None or url==None or len(url)<1:
         TOPLEVELCATEGORIES()
        
 elif mode==1:
-        print ""+url
-        VIEWLISTOFRECORDEDSHOWS(url,name)
+	print ""+url
+	VIEWLISTOFRECORDEDSHOWS(url,name)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
         
 elif mode==11:
-        print ""+url
-        VIEWLISTOFEPISODESFORSHOW(url,name)
+	print ""+url
+	VIEWLISTOFEPISODESFORSHOW(url,name)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
         
 elif mode==2:
-        print ""+url
-        VIEWUPCOMINGRECORDINGS(url,name)
+	print ""+url
+	VIEWUPCOMINGRECORDINGS(url,name)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 
 elif mode==3:
-        print ""+url
-        VIEWCHANNELLISTING(url,name)
+	print ""+url
+	VIEWCHANNELLISTING(url,name)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
 
 elif mode==31:
-        print ""+url
-        VIEWAIRINGSONCHANNEL(url,name)
+	print ""+url
+	VIEWAIRINGSONCHANNEL(url,name)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 
 elif mode==4:
-        print ""+url
-        SEARCHFORRECORDINGS(url,name)
+	print ""+url
+	SEARCHFORRECORDINGS(url,name)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 
 elif mode==5:
-        print ""+url
-        SEARCHFORAIRINGS(url,name)
+	print ""+url
+	SEARCHFORAIRINGS(url,name)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+	xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 
-xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
-xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 xbmcplugin.setContent(int(sys.argv[1]),'episodes')
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
