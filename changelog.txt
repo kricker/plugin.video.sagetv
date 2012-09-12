@@ -1,0 +1,2 @@
+[B]Version 1.0.0 (Sep 11, 2012)[/B]
+- Initial commit to Eden add-on system

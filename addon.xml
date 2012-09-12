@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.SageTV"
        name="SageTV"
-       version="1.4.0"
+       version="1.0.0"
        provider-name="aaronb,kricker,LehighBri">
   <requires>
     <import addon="xbmc.python" version="1.0"/>
@@ -12,7 +12,7 @@
   </extension>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
-    <summary>SageTV plugin</summary>
-    <description>connect to SageTV library</description>
+    <summary>SageTV: Browse and manage airings and recordings</summary>
+    <description>Allows you to connect to your SageTV server where you can browse and view recordings, view and manage your upcoming recordings, browse channel listings, and search for airings and recordings.</description>
   </extension>
 </addon>
