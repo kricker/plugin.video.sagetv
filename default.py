@@ -17,6 +17,25 @@ __cwd__      = __settings__.getAddonInfo('path')
 # SageTV recording Directories for path replacement
 sage_rec = __settings__.getSetting("sage_rec")
 sage_unc = __settings__.getSetting("sage_unc")
+sage_rec2 = __settings__.getSetting("sage_rec2")
+sage_unc2 = __settings__.getSetting("sage_unc2")
+sage_rec3 = __settings__.getSetting("sage_rec3")
+sage_unc3 = __settings__.getSetting("sage_unc3")
+sage_rec4 = __settings__.getSetting("sage_rec4")
+sage_unc4 = __settings__.getSetting("sage_unc4")
+sage_rec5 = __settings__.getSetting("sage_rec5")
+sage_unc5 = __settings__.getSetting("sage_unc5")
+
+sagemappings = [ (sage_rec, sage_unc) ]
+
+if ( sage_unc2 != '' ):
+	sagemappings.append( (sage_rec2, sage_unc2) )
+if ( sage_unc3 != '' ):
+	sagemappings.append( (sage_rec3, sage_unc3) )
+if ( sage_unc4 != '' ):
+	sagemappings.append( (sage_rec4, sage_unc4) )
+if ( sage_unc5 != '' ):
+	sagemappings.append( (sage_rec5, sage_unc5) )
 
 # SageTV URL based on user settings
 strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.getSetting("sage_pass") + '@' + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
@@ -108,9 +127,17 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
 		
 		imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
 		print "strOriginalAirdate=" + strOriginalAirdate + ";strAiringdate" + strAiringdate
-		addMediafileLink(strDisplayText,strFilepath.replace(sage_rec, sage_unc),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+		addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
 	xbmc.executebuiltin("Container.SetViewMode(503)")
+
+
+# Map file recording path to the first matching UNC path
+def filemap(filepath):
+	for (rec, unc) in sagemappings:
+		if ( filepath.find(rec) != -1 ):
+			return filepath.replace(rec, unc)
+	
 
 def VIEWUPCOMINGRECORDINGS(url,name):
 	#req = urllib.urlopen(url)
@@ -262,7 +289,7 @@ def SEARCHFORRECORDINGS(url,name):
 		strFilepath = mf.get("SegmentFiles")[0]
 		
 		imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
-		addMediafileLink(strDisplayText,strFilepath.replace(sage_rec, sage_unc),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+		addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
 	xbmc.executebuiltin("Container.SetViewMode(503)")
 
