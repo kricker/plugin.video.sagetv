@@ -79,9 +79,6 @@ def VIEWLISTOFRECORDEDSHOWS(url,name):
         #print "ADDING imageUrl=" + imageUrl
         addDir(strTitle, urlToShowEpisodes,11,imageUrl,strExternalId)
 
-    xbmc.executebuiltin("Container.SetSortMethod(" + str(xbmcplugin.SORT_METHOD_TITLE) + ")")
-    xbmc.executebuiltin("Container.SortDirection(ascending)")
-
 def VIEWLISTOFEPISODESFORSHOW(url,name):
     mfs = executeSagexAPIJSONCall(url, "Result")
     print "# of EPISODES for " + name + "=" + str(len(mfs))
@@ -134,8 +131,6 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         print "filemap=" + filemap(strFilepath)
         addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
-    xbmc.executebuiltin("Container.SetSortMethod(" + str(xbmcplugin.SORT_METHOD_EPISODE) + ")")
-    xbmc.executebuiltin("Container.SortDirection(ascending)")
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
 
@@ -187,8 +182,6 @@ def VIEWUPCOMINGRECORDINGS(url,name):
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
         addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
-    xbmc.executebuiltin("Container.SetSortMethod(" + str(xbmcplugin.SORT_METHOD_DATE) + ")")
-    xbmc.executebuiltin("Container.SortDirection(ascending)")
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
 def VIEWCHANNELLISTING(url,name):
@@ -210,8 +203,6 @@ def VIEWCHANNELLISTING(url,name):
         strDisplayText = channelNumber + "-" + channelName
         addChannelDir(strDisplayText, urlToAiringsOnChannel,31,logoUrl,channelDescription)
 
-    xbmc.executebuiltin("Container.SetSortMethod(" + str(xbmcplugin.SORT_METHOD_TITLE) + ")")
-    xbmc.executebuiltin("Container.SortDirection(ascending)")
     xbmc.executebuiltin("Container.SetViewMode(535)")
 
 def VIEWAIRINGSONCHANNEL(url,name):
@@ -253,8 +244,6 @@ def VIEWAIRINGSONCHANNEL(url,name):
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
         addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
-    xbmc.executebuiltin("Container.SetSortMethod(" + str(xbmcplugin.SORT_METHOD_DATE) + ")")
-    xbmc.executebuiltin("Container.SortDirection(ascending)")
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
 def SEARCHFORRECORDINGS(url,name):
@@ -305,8 +294,6 @@ def SEARCHFORRECORDINGS(url,name):
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
-    xbmc.executebuiltin("Container.SetSortMethod(" + str(xbmcplugin.SORT_METHOD_DATE) + ")")
-    xbmc.executebuiltin("Container.SortDirection(ascending)")
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
 def SEARCHFORAIRINGS(url,name):
@@ -353,8 +340,6 @@ def SEARCHFORAIRINGS(url,name):
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
         addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
-    xbmc.executebuiltin("Container.SetSortMethod(" + str(xbmcplugin.SORT_METHOD_DATE) + ")")
-    xbmc.executebuiltin("Container.SortDirection(ascending)")
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
 def get_params():
