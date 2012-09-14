@@ -28,13 +28,13 @@ sage_unc5 = __settings__.getSetting("sage_unc5")
 
 sagemappings = [ (sage_rec, sage_unc) ]
 
-if ( sage_unc2 != '' ):
+if ( sage_unc2 != '' and sage_unc2 != None ):
     sagemappings.append( (sage_rec2, sage_unc2) )
-if ( sage_unc3 != '' ):
+if ( sage_unc3 != '' and sage_unc3 != None ):
     sagemappings.append( (sage_rec3, sage_unc3) )
-if ( sage_unc4 != '' ):
+if ( sage_unc4 != '' and sage_unc4 != None ):
     sagemappings.append( (sage_rec4, sage_unc4) )
-if ( sage_unc5 != '' ):
+if ( sage_unc5 != '' and sage_unc5 != None ):
     sagemappings.append( (sage_rec5, sage_unc5) )
 
 # SageTV URL based on user settings
@@ -126,7 +126,9 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         strFilepath = mf.get("SegmentFiles")[0]
         
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
-        print "strOriginalAirdate=" + strOriginalAirdate + ";strAiringdate" + strAiringdate
+        print "CALLING addMediafileLink:"
+        print "strFilepath=" + strFilepath
+        print "filemap=" + filemap(strFilepath)
         addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
@@ -137,7 +139,8 @@ def filemap(filepath):
     for (rec, unc) in sagemappings:
         if ( filepath.find(rec) != -1 ):
             return filepath.replace(rec, unc)
-    
+
+    return filepath
 
 def VIEWUPCOMINGRECORDINGS(url,name):
     #req = urllib.urlopen(url)
@@ -379,6 +382,8 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio } )
         liz.setIconImage(iconimage)
         liz.setThumbnailImage(iconimage)
+        print "handle=int(sys.argv[1])=" + str(sys.argv[1])
+        print "url=" + url
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
