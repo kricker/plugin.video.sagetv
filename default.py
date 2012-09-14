@@ -39,25 +39,27 @@ if ( sage_unc5 != '' and sage_unc5 != None ):
 
 # SageTV URL based on user settings
 strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.getSetting("sage_pass") + '@' + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
-iconImage = xbmc.translatePath(os.path.join(__cwd__,'resources','media','icon.png'))
+IMAGE_POSTER = xbmc.translatePath(os.path.join(__cwd__,'resources','media','poster.jpg'))
+IMAGE_THUMB = xbmc.translatePath(os.path.join(__cwd__,'resources','media','thumb.jpg'))
 DEFAULT_CHARSET = 'utf-8'
 
 # 500-THUMBNAIL 501/502/505/506/507/508-LIST 503-MINFO2 504-MINFO 515-MINFO3
 confluence_views = [500,501,502,503,504,508]
 
+
 def TOPLEVELCATEGORIES():
  
-    addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,iconImage,'Browse previously recorded and currently recording shows')
-    addTopLevelDir('2. View Upcoming Recordings', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,iconImage,'View and manage your upcoming recording schedule')
-    addTopLevelDir('3. Browse Channel Listings', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,iconImage,'Browse channels and manage recordings')
-    addTopLevelDir('4. Search for Recordings', strUrl + '/',4,iconImage,'Search for Recordings')
-    addTopLevelDir('5. Search for Airings', strUrl + '/',5,iconImage,'Search for Upcoming Airings')
+    addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,IMAGE_POSTER,'Browse previously recorded and currently recording shows')
+    addTopLevelDir('2. View Upcoming Recordings', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,IMAGE_POSTER,'View and manage your upcoming recording schedule')
+    addTopLevelDir('3. Browse Channel Listings', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,IMAGE_POSTER,'Browse channels and manage recordings')
+    addTopLevelDir('4. Search for Recordings', strUrl + '/',4,IMAGE_POSTER,'Search for Recordings')
+    addTopLevelDir('5. Search for Airings', strUrl + '/',5,IMAGE_POSTER,'Search for Upcoming Airings')
 
     xbmc.executebuiltin("Container.SetViewMode(535)")
     
 def VIEWLISTOFRECORDEDSHOWS(url,name):
     #Get the list of Recorded shows
-    addDir('[All Shows]',strUrl + '/sagex/api?command=GetMediaFiles&1="T"&size=500&encoder=json',11,iconImage,'')
+    addDir('[All Shows]',strUrl + '/sagex/api?command=GetMediaFiles&1="T"&size=500&encoder=json',11,IMAGE_POSTER,IMAGE_THUMB,'')
     titleObjects = executeSagexAPIJSONCall(url, "Result")
     titles = titleObjects.keys()
     for title in titles:
@@ -77,7 +79,7 @@ def VIEWLISTOFRECORDEDSHOWS(url,name):
         print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileId
         #print "ADDING imageUrl=" + imageUrl
-        addDir(strTitle, urlToShowEpisodes,11,imageUrl,strExternalId)
+        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalId)
 
 def VIEWLISTOFEPISODESFORSHOW(url,name):
     mfs = executeSagexAPIJSONCall(url, "Result")
@@ -116,19 +118,19 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        strDisplayText = strEpisode
-        if(strEpisode == ""):
-            strDisplayText = strDescription
-        # else if there is an episode use that
-        if(name == "[All Shows]"):
-            strDisplayText = strTitle + ' - ' + strDisplayText
+        if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
+            strDisplayText = strEpisode
+            if(strEpisode == ""):
+                if(strDescription != ""):
+                    strDisplayText = strDescription
+            if(name == "[All Shows]"):
+                strDisplayText = strTitle + " - " + strDisplayText
+        else:
+            strDisplayText = strTitle
 
         strFilepath = mf.get("SegmentFiles")[0]
         
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
-        print "CALLING addMediafileLink:"
-        print "strFilepath=" + strFilepath
-        print "filemap=" + filemap(strFilepath)
         addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
@@ -172,15 +174,16 @@ def VIEWUPCOMINGRECORDINGS(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        if(strEpisode == "" and strDescription == ""):
-            strDisplayText = strTitle
-        elif(strEpisode == ""):
-            strDisplayText = strTitle + ' - ' + strDescription
-        # else if there is an episode use that
-        else:
-            strDisplayText = strTitle + ' - ' + strEpisode
+        
+        strDisplayText = strTitle
+        if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
+            if(strEpisode == ""):
+                if(strDescription != ""):
+                    strDisplayText = strTitle + ' - ' + strDescription
+            else:
+                strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -234,15 +237,15 @@ def VIEWAIRINGSONCHANNEL(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        if(strEpisode == "" and strDescription == ""):
-            strDisplayText = strTitle
-        elif(strEpisode == ""):
-            strDisplayText = strTitle + ' - ' + strDescription
-        # else if there is an episode use that
-        else:
-            strDisplayText = strTitle + ' - ' + strEpisode
+        strDisplayText = strTitle
+        if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
+            if(strEpisode == ""):
+                if(strDescription != ""):
+                    strDisplayText = strTitle + ' - ' + strDescription
+            else:
+                strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -285,9 +288,12 @@ def SEARCHFORRECORDINGS(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        strDisplayText = strTitle + ' - ' + strEpisode
-        if(strEpisode == ""):
-            strDisplayText = strTitle + ' - ' + strDescription
+        strDisplayText = strTitle
+        if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
+            if(strEpisode != "" and strDescription != ""):
+                strDisplayText = strTitle + ' - ' + strDescription
+            elif(strEpisode != ""):
+                strDisplayText = strTitle + ' - ' + strEpisode
 
         strFilepath = mf.get("SegmentFiles")[0]
         
@@ -330,15 +336,15 @@ def SEARCHFORAIRINGS(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        if(strEpisode == "" and strDescription == ""):
-            strDisplayText = strTitle
-        elif(strEpisode == ""):
-            strDisplayText = strTitle + ' - ' + strDescription
-        # else if there is an episode use that
-        else:
-            strDisplayText = strTitle + ' - ' + strEpisode
+        strDisplayText = strTitle
+        if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
+            if(strEpisode == ""):
+                if(strDescription != ""):
+                    strDisplayText = strTitle + ' - ' + strDescription
+            else:
+                strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,iconImage,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -382,8 +388,6 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio } )
         liz.setIconImage(iconimage)
         liz.setThumbnailImage(iconimage)
-        print "handle=int(sys.argv[1])=" + str(sys.argv[1])
-        print "url=" + url
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
@@ -458,7 +462,7 @@ def addTopLevelDir(name,url,mode,iconimage,dirdescription):
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
 
-def addDir(name,url,mode,iconimage,showexternalid):
+def addDir(name,url,mode,iconimage,thumbimage,showexternalid):
     u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
     ok=True
     liz=xbmcgui.ListItem(name)
@@ -467,9 +471,10 @@ def addDir(name,url,mode,iconimage,showexternalid):
 
     liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": strSeriesDescription } )
     liz.setIconImage(iconimage)
-    liz.setThumbnailImage(iconimage)
-    #liz.setIconImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
-    #liz.setThumbnailImage(xbmc.translatePath(os.path.join(__cwd__,'resources','media',iconimage)))
+    if(thumbimage != ""):
+        liz.setThumbnailImage(thumbimage)
+    else:
+        liz.setThumbnailImage(iconimage)
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
 
