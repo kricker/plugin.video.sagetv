@@ -1,4 +1,4 @@
-import urllib,urllib2,re
+import urllib,urllib2,re,string
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon,CommonFunctions
 import os
 import simplejson as json
@@ -42,14 +42,32 @@ strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.g
 IMAGE_POSTER = xbmc.translatePath(os.path.join(__cwd__,'resources','media','poster.jpg'))
 IMAGE_THUMB = xbmc.translatePath(os.path.join(__cwd__,'resources','media','thumb.jpg'))
 DEFAULT_CHARSET = 'utf-8'
+MIN_VERSION_SAGEX_REQUIRED = "7.1.9.10"
 
 # 500-THUMBNAIL 501/502/505/506/507/508-LIST 503-MINFO2 504-MINFO 515-MINFO3
 confluence_views = [500,501,502,503,504,508]
 
 
 def TOPLEVELCATEGORIES():
+
+    url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
+    plugins = executeSagexAPIJSONCall(url, "Result")
+    sagexVersion = ""
+    for plugin in plugins:
+        if(plugin.get("PluginIdentifier") == "sagex-api-services"):
+            sagexVersion = plugin.get("PluginVersion")
  
-    addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?command=EvaluateExpression&1=GroupByMethod(GetMediaFiles("T"),"GetMediaTitle")&size=500&encoder=json',1,IMAGE_POSTER,'Browse previously recorded and currently recording shows')
+    print "TOPLEVELCATEGORIES STARTED; sagex-api-services version=" + sagexVersion
+    if(sagexVersion == ""):
+        xbmcgui.Dialog().ok("Dependency Missing","This addon requires sagex-api-services version " + MIN_VERSION_SAGEX_REQUIRED, "You do not have the sagex-api plugin installed","Please install sagex-api-services to enable this plugin.")
+        return        
+    if(comparePluginVersions(sagexVersion, MIN_VERSION_SAGEX_REQUIRED) < 0):
+        xbmcgui.Dialog().ok("Dependency Missing","This addon requires sagex-api-services version " + MIN_VERSION_SAGEX_REQUIRED, "You have version " + sagexVersion,"Please install/upgrade your sagex-api-services version to " + MIN_VERSION_SAGEX_REQUIRED)
+        return
+#        xbmc.executebuiltin("Notification('test','test2')")
+    # 
+
+    addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?c=xbmc:GetTVMediaFilesGroupedByTitle&size=500&encoder=json',1,IMAGE_POSTER,'Browse previously recorded and currently recording shows')
     addTopLevelDir('2. View Upcoming Recordings', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,IMAGE_POSTER,'View and manage your upcoming recording schedule')
     addTopLevelDir('3. Browse Channel Listings', strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByBoolMethod(GetAllChannels(), "IsChannelViewable", true)&size=1000&encoder=json',3,IMAGE_POSTER,'Browse channels and manage recordings')
     addTopLevelDir('4. Search for Recordings', strUrl + '/',4,IMAGE_POSTER,'Search for Recordings')
@@ -59,27 +77,24 @@ def TOPLEVELCATEGORIES():
     
 def VIEWLISTOFRECORDEDSHOWS(url,name):
     #Get the list of Recorded shows
-    addDir('[All Shows]',strUrl + '/sagex/api?command=GetMediaFiles&1="T"&size=500&encoder=json',11,IMAGE_POSTER,IMAGE_THUMB,'')
+    addDir('[All Shows]',strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=&size=500&encoder=json',11,IMAGE_POSTER,IMAGE_THUMB,'')
     titleObjects = executeSagexAPIJSONCall(url, "Result")
     titles = titleObjects.keys()
     for title in titles:
         mfsForTitle = titleObjects.get(title)
-        for mf in mfsForTitle:
-            airing = mf.get("Airing")
-            show = airing.get("Show")
-            strTitle = airing.get("AiringTitle")
-            strMediaFileId = str(mf.get("MediaFileID"))
-            strExternalId = str(show.get("ShowExternalID"))
-            #strTitle = strTitle.replace('&amp;','&')
-            #strTitle = strTitle.replace('&quot;','"')
-            #strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        for mfSubset in mfsForTitle:
+            strTitle = mfSubset.get("ShowTitle")
+            strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+            strMediaFileID = mfSubset.get("MediaFileID")
+            strExternalID = mfSubset.get("ShowExternalID")
             break
-        urlToShowEpisodes = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"),"GetMediaTitle","' + urllib2.quote(strTitle.encode("utf8")) + '",true)&size=500&encoder=json'
+        urlToShowEpisodes = strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=' + urllib2.quote(strTitle.encode("utf8")) + '&size=500&encoder=json'
+        #urlToShowEpisodes = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"),"GetMediaTitle","' + urllib2.quote(strTitle.encode("utf8")) + '",true)&size=500&encoder=json'
         #urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
         print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
-        imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileId
+        imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         #print "ADDING imageUrl=" + imageUrl
-        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalId)
+        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalID)
 
 def VIEWLISTOFEPISODESFORSHOW(url,name):
     mfs = executeSagexAPIJSONCall(url, "Result")
@@ -89,31 +104,27 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         xbmcplugin.endOfDirectory(int(sys.argv[1]), updateListing=True)
         return
 
-    for mf in mfs:
-        airing = mf.get("Airing")
-        show = airing.get("Show")
-        strMediaFileID = str(mf.get("MediaFileID"))
-        strTitle = airing.get("AiringTitle")
-        strEpisode = show.get("ShowEpisode")
-        if(strEpisode == None):
-            strEpisode = ""        
-        strDescription = show.get("ShowDescription")
-        if(strDescription == None):
-            strDescription = ""        
-        strGenre = show.get("ShowCategoriesString")
-        strAiringID = str(airing.get("AiringID"))
-        seasonNum = int(show.get("ShowSeasonNumber"))
-        episodeNum = int(show.get("ShowEpisodeNumber"))
-        studio = airing.get("AiringChannelName")
-        isFavorite = airing.get("IsFavorite")
+    for mfSubset in mfs:
+        strTitle = mfSubset.get("ShowTitle")
+        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        strMediaFileID = mfSubset.get("MediaFileID")
+
+        strEpisode = mfSubset.get("EpisodeTitle")
+        strDescription = mfSubset.get("EpisodeDescription")
+        strGenre = mfSubset.get("ShowGenre")
+        strAiringID = mfSubset.get("AiringID")
+        seasonNum = int(mfSubset.get("SeasonNumber"))
+        episodeNum = int(mfSubset.get("EpisodeNumber"))
+        studio = mfSubset.get("AiringChannelName")
+        isFavorite = mfSubset.get("IsFavorite")
         
-        startTime = float(airing.get("AiringStartTime") // 1000)
+        startTime = float(mfSubset.get("AiringStartTime") // 1000)
         strAiringdateObject = date.fromtimestamp(startTime)
         airTime = strftime('%H:%M', time.localtime(startTime))
         strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.day, strAiringdateObject.month, strAiringdateObject.year)
         strOriginalAirdate = strAiringdate
-        if(airing.get("OriginalAiringDate")):
-            startTime = float(airing.get("OriginalAiringDate") // 1000)
+        if(mfSubset.get("OriginalAiringDate") > 0):
+            startTime = float(mfSubset.get("OriginalAiringDate") // 1000)
             strOriginalAirdateObject = date.fromtimestamp(startTime)
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
@@ -128,7 +139,7 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         else:
             strDisplayText = strTitle
 
-        strFilepath = mf.get("SegmentFiles")[0]
+        strFilepath = mfSubset.get("SegmentFiles")[0]
         
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
@@ -150,6 +161,7 @@ def VIEWUPCOMINGRECORDINGS(url,name):
     for airing in airings:
         show = airing.get("Show")
         strTitle = airing.get("AiringTitle")
+        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
         strEpisode = show.get("ShowEpisode")
         if(strEpisode == None):
             strEpisode = ""        
@@ -213,6 +225,7 @@ def VIEWAIRINGSONCHANNEL(url,name):
     for airing in airings:
         show = airing.get("Show")
         strTitle = airing.get("AiringTitle")
+        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
         strEpisode = show.get("ShowEpisode")
         if(strEpisode == None):
             strEpisode = ""        
@@ -251,39 +264,37 @@ def VIEWAIRINGSONCHANNEL(url,name):
 
 def SEARCHFORRECORDINGS(url,name):
     titleToSearchFor = common.getUserInput("Search","")
-    url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"), "GetMediaTitle", "' + urllib2.quote(titleToSearchFor.encode("utf8")) + '", true)&encoder=json'
+    url = strUrl + '/sagex/api?c=xbmc:SearchForMediaFiles&1=%s&size=100&encoder=json' % urllib2.quote(titleToSearchFor.encode("utf8"))
+    #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"), "GetMediaTitle", "' + urllib2.quote(titleToSearchFor.encode("utf8")) + '", true)&size=100&encoder=json'
     mfs = executeSagexAPIJSONCall(url, "Result")
     print "# of EPISODES for " + titleToSearchFor + "=" + str(len(mfs))
     if(mfs == None or len(mfs) == 0):
-        print "NO EPISODES FOUND FOR SHOW=" + name
+        print "NO EPISODES FOUND FOR SEARCH=" + titleToSearchFor
         xbmcplugin.endOfDirectory(int(sys.argv[1]), updateListing=True)
         return
 
-    for mf in mfs:
-        airing = mf.get("Airing")
-        show = airing.get("Show")
-        strMediaFileID = str(mf.get("MediaFileID"))
-        strTitle = airing.get("AiringTitle")
-        strEpisode = show.get("ShowEpisode")
-        if(strEpisode == None):
-            strEpisode = ""        
-        strDescription = show.get("ShowDescription")
-        if(strDescription == None):
-            strDescription = ""        
-        strGenre = show.get("ShowCategoriesString")
-        strAiringID = str(airing.get("AiringID"))
-        seasonNum = int(show.get("ShowSeasonNumber"))
-        episodeNum = int(show.get("ShowEpisodeNumber"))
-        studio = airing.get("AiringChannelName")
-        isFavorite = airing.get("IsFavorite")
+    for mfSubset in mfs:
+        strTitle = mfSubset.get("ShowTitle")
+        print "showtitle=" + str(strTitle)
+        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        strMediaFileID = mfSubset.get("MediaFileID")
+
+        strEpisode = mfSubset.get("EpisodeTitle")
+        strDescription = mfSubset.get("EpisodeDescription")
+        strGenre = mfSubset.get("ShowGenre")
+        strAiringID = mfSubset.get("AiringID")
+        seasonNum = int(mfSubset.get("SeasonNumber"))
+        episodeNum = int(mfSubset.get("EpisodeNumber"))
+        studio = mfSubset.get("AiringChannelName")
+        isFavorite = mfSubset.get("IsFavorite")
         
-        startTime = float(airing.get("AiringStartTime") // 1000)
+        startTime = float(mfSubset.get("AiringStartTime") // 1000)
         strAiringdateObject = date.fromtimestamp(startTime)
         airTime = strftime('%H:%M', time.localtime(startTime))
         strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.day, strAiringdateObject.month, strAiringdateObject.year)
         strOriginalAirdate = strAiringdate
-        if(airing.get("OriginalAiringDate")):
-            startTime = float(airing.get("OriginalAiringDate") // 1000)
+        if(mfSubset.get("OriginalAiringDate") > 0):
+            startTime = float(mfSubset.get("OriginalAiringDate") // 1000)
             strOriginalAirdateObject = date.fromtimestamp(startTime)
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
@@ -295,7 +306,7 @@ def SEARCHFORRECORDINGS(url,name):
             elif(strEpisode != ""):
                 strDisplayText = strTitle + ' - ' + strEpisode
 
-        strFilepath = mf.get("SegmentFiles")[0]
+        strFilepath = mfSubset.get("SegmentFiles")[0]
         
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite)
@@ -307,11 +318,13 @@ def SEARCHFORAIRINGS(url,name):
     now = time.time()
     startRange = str(long(now * 1000))
     #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime","%s",java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), startRange)
-    url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime",java_lang_Long_parseLong("%d"),java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), int(time.time()) * 1000)
+    #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime",java_lang_Long_parseLong("%d"),java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), int(time.time()) * 1000)
+    url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchSelectedFields("%s",false,true,true,true,false,false,false,false,false,false,"T"),"GetAiringStartTime",java_lang_Long_parseLong("%d"),java_lang_Long_MAX_VALUE,true)&size=100&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), int(time.time()) * 1000)
     airings = executeSagexAPIJSONCall(url, "Result")
     for airing in airings:
         show = airing.get("Show")
         strTitle = airing.get("AiringTitle")
+        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
         strEpisode = show.get("ShowEpisode")
         if(strEpisode == None):
             strEpisode = ""        
@@ -507,7 +520,35 @@ def unicodeToStr(obj):
     else:
         return obj # leave numbers and booleans alone
 
-    
+def comparePluginVersions(s1, s2):
+
+    # See if they are equal.
+    if s1 == s2:
+        return 0
+
+    # Make sure they are the same length.
+    str1 = normalizePluginString(s1, len(string.split(s2, '.')))
+    str2 = normalizePluginString(s2, len(string.split(s1, '.')))
+
+    # Split into parts separated by '.'
+    p1 = string.split(str1, '.')
+    p2 = string.split(str2, '.')
+
+    for i in range(len(p1)):
+        int1 = int(p1[i])
+        int2 = int(p2[i])
+        if int1 < int2:
+            return -1
+        elif int2 < int1:
+            return 1
+
+    return 0
+        
+def normalizePluginString(s, l):
+    while len(string.split(s, '.')) < l:
+        s += ".0"
+    return s
+
 params=get_params()
 url=None
 name=None

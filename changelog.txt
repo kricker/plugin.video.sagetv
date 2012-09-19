@@ -1,5 +1,10 @@
-[B]Version 1.0.1 (Sep 13, 2012)[/B]
+[B]Version 1.1.0 (Sep 19, 2012)[/B]
 - Support up to 5 recording directory mappings
+- Updated how airings/recordings of various genres are displayed (e.g. Movies vs. TV Shows)
+- Updated thumbnail and poster images
+- Significant performance improvement when displaying lists of shows and episodes (this was accomplished by completely re-doing) how the metadata is pulled and implemented a custom sagex .js file that enables the addon on to only pull the metadata it needs and nothing more)
+- Enhanced "Search for Airings" and "Search for Recordings" to 1) be case insensitive, 2, search for a substring vs. the exact string, and 3) search across the show title, episode title, and description fields (vs. just the show title filed before)
+- Added check to see if sagex-api-services is installed and then to check that the minimum required version is installed which this addon requires
 
 [B]Version 1.0.0 (Sep 11, 2012)[/B]
 - Initial commit to Eden add-on system
