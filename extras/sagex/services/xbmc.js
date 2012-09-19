@@ -62,7 +62,7 @@ function GetMediaFilesForShowWithSubsetOfProperties(showtitle) {
 function SearchForMediaFiles(searchterm) {
    var shows = new java.util.ArrayList();
    //searchresults will be a vector, not an arraylist like in the functions above
-   var searchresults = Database.FilterByMethod(Database.SearchSelectedFields(searchterm,false,true,true,true,false,false,false,false,false,false,"T"), "GetMediaFileForAiring", null, false);
+   var searchresults = Database.FilterByMethod(Database.SearchSelectedFields(searchterm,false,true,true,false,false,false,false,false,false,false,"T"), "GetMediaFileForAiring", null, false);
    var s = searchresults.size();
    for (var i=0;i<s;i++) {
       var airing = searchresults.get(i);

@@ -134,6 +134,9 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
             if(strEpisode == ""):
                 if(strDescription != ""):
                     strDisplayText = strDescription
+                else:
+                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                    strDescription = strGenre
             if(name == "[All Shows]"):
                 strDisplayText = strTitle + " - " + strDisplayText
         else:
@@ -192,6 +195,9 @@ def VIEWUPCOMINGRECORDINGS(url,name):
             if(strEpisode == ""):
                 if(strDescription != ""):
                     strDisplayText = strTitle + ' - ' + strDescription
+                else:
+                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                    strDescription = strGenre
             else:
                 strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
@@ -255,6 +261,9 @@ def VIEWAIRINGSONCHANNEL(url,name):
             if(strEpisode == ""):
                 if(strDescription != ""):
                     strDisplayText = strTitle + ' - ' + strDescription
+                else:
+                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                    strDescription = strGenre
             else:
                 strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
@@ -305,6 +314,10 @@ def SEARCHFORRECORDINGS(url,name):
                 strDisplayText = strTitle + ' - ' + strDescription
             elif(strEpisode != ""):
                 strDisplayText = strTitle + ' - ' + strEpisode
+            else:
+                strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                strDescription = strGenre
+                
 
         strFilepath = mfSubset.get("SegmentFiles")[0]
         
@@ -319,7 +332,7 @@ def SEARCHFORAIRINGS(url,name):
     startRange = str(long(now * 1000))
     #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime","%s",java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), startRange)
     #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime",java_lang_Long_parseLong("%d"),java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), int(time.time()) * 1000)
-    url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchSelectedFields("%s",false,true,true,true,false,false,false,false,false,false,"T"),"GetAiringStartTime",java_lang_Long_parseLong("%d"),java_lang_Long_MAX_VALUE,true)&size=100&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), int(time.time()) * 1000)
+    url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchSelectedFields("%s",false,true,true,false,false,false,false,false,false,false,"T"),"GetAiringStartTime",java_lang_Long_parseLong("%d"),java_lang_Long_MAX_VALUE,true)&size=100&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), int(time.time()) * 1000)
     airings = executeSagexAPIJSONCall(url, "Result")
     for airing in airings:
         show = airing.get("Show")
@@ -354,6 +367,9 @@ def SEARCHFORAIRINGS(url,name):
             if(strEpisode == ""):
                 if(strDescription != ""):
                     strDisplayText = strTitle + ' - ' + strDescription
+                else:
+                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                    strDescription = strGenre
             else:
                 strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
