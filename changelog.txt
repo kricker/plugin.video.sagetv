@@ -1,3 +1,9 @@
+[B]Version 1.1.1 (Sep 20, 2012)[/B]
+- Added support to watch an airing live
+- Added initial notifications to give feedback after various context menu items are executed (e.g. delete, start recording)
+- Updated display text for shows without descriptions or episode titles (e.g. some news and sports shows)
+- Updated search to not search within an episode's description field (just search within episode title and show title)
+
 [B]Version 1.1.0 (Sep 19, 2012)[/B]
 - Support up to 5 recording directory mappings
 - Updated how airings/recordings of various genres are displayed (e.g. Movies vs. TV Shows)
@@ -8,3 +14,6 @@
 
 [B]Version 1.0.0 (Sep 11, 2012)[/B]
 - Initial commit to Eden add-on system
+
+TODO:
+-Sync watched status

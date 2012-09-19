@@ -52,6 +52,10 @@ def TOPLEVELCATEGORIES():
 
     url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
     plugins = executeSagexAPIJSONCall(url, "Result")
+    if(len(plugins) == 0):
+        xbmcgui.Dialog().ok("SageTV Server Not Found","Unable to connect to your SageTV server.", "1) Please confirm it is running.", "2. Confirm the settings of this addon are correct.")
+        return        
+        
     sagexVersion = ""
     for plugin in plugins:
         if(plugin.get("PluginIdentifier") == "sagex-api-services"):
@@ -64,8 +68,6 @@ def TOPLEVELCATEGORIES():
     if(comparePluginVersions(sagexVersion, MIN_VERSION_SAGEX_REQUIRED) < 0):
         xbmcgui.Dialog().ok("Dependency Missing","This addon requires sagex-api-services version " + MIN_VERSION_SAGEX_REQUIRED, "You have version " + sagexVersion,"Please install/upgrade your sagex-api-services version to " + MIN_VERSION_SAGEX_REQUIRED)
         return
-#        xbmc.executebuiltin("Notification('test','test2')")
-    # 
 
     addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?c=xbmc:GetTVMediaFilesGroupedByTitle&size=500&encoder=json',1,IMAGE_POSTER,'Browse previously recorded and currently recording shows')
     addTopLevelDir('2. View Upcoming Recordings', strUrl + '/sagex/api?command=GetScheduledRecordings&encoder=json',2,IMAGE_POSTER,'View and manage your upcoming recording schedule')
@@ -135,8 +137,12 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
                 if(strDescription != ""):
                     strDisplayText = strDescription
                 else:
-                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
-                    strDescription = strGenre
+                    if(strGenre.find("News")>=0):
+                        strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDescription = strGenre
+                    elif(strGenre.find("Sports")>=0):
+                        strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDescription = strGenre
             if(name == "[All Shows]"):
                 strDisplayText = strTitle + " - " + strDisplayText
         else:
@@ -196,12 +202,16 @@ def VIEWUPCOMINGRECORDINGS(url,name):
                 if(strDescription != ""):
                     strDisplayText = strTitle + ' - ' + strDescription
                 else:
-                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
-                    strDescription = strGenre
+                    if(strGenre.find("News")>=0):
+                        strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDescription = strGenre
+                    elif(strGenre.find("Sports")>=0):
+                        strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDescription = strGenre
             else:
                 strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -262,12 +272,16 @@ def VIEWAIRINGSONCHANNEL(url,name):
                 if(strDescription != ""):
                     strDisplayText = strTitle + ' - ' + strDescription
                 else:
-                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
-                    strDescription = strGenre
+                    if(strGenre.find("News")>=0):
+                        strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDescription = strGenre
+                    elif(strGenre.find("Sports")>=0):
+                        strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDescription = strGenre
             else:
                 strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -315,8 +329,12 @@ def SEARCHFORRECORDINGS(url,name):
             elif(strEpisode != ""):
                 strDisplayText = strTitle + ' - ' + strEpisode
             else:
-                strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
-                strDescription = strGenre
+                if(strGenre.find("News")>=0):
+                    strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                    strDescription = strGenre
+                elif(strGenre.find("Sports")>=0):
+                    strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                    strDescription = strGenre
                 
 
         strFilepath = mfSubset.get("SegmentFiles")[0]
@@ -373,7 +391,7 @@ def SEARCHFORAIRINGS(url,name):
             else:
                 strDisplayText = strTitle + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite)
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -420,13 +438,14 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
-def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,airingid,seasonnum,episodenum,studio,isfavorite):
+def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,airingid,seasonnum,episodenum,studio,isfavorite,starttime,endtime):
     ok=True
     liz=xbmcgui.ListItem(name)
     scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
     actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=airing:' + airingid
     actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
     actionRecord = "record|" + strUrl + '/sagex/api?command=Record&1=airing:' + airingid
+    actionWatchNow = "watchnow|" + strUrl + "|" + airingid
     
     bisAiringScheduledToRecord = isAiringScheduledToRecord(airingid)
     
@@ -439,7 +458,13 @@ def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,sh
         if(isfavorite):
             liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
         else:
-            liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
+            #Check if an airing is airing live right now; if it is, provide the ability to watch it live
+            bisAiringLiveNow = isAiringLiveNow(starttime, endtime)
+            print "bisAiringLiveNow=" + str(bisAiringLiveNow)
+            if(bisAiringLiveNow):
+                liz.addContextMenuItems([('Watch Now', 'XBMC.RunScript(' + scriptToRun + ', ' + actionWatchNow + ')'), ('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
+            else:
+                liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
 
     liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio } )
     liz.setIconImage(iconimage)
@@ -456,11 +481,16 @@ def isAiringRecording(airingid):
     sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=airing:' + airingid + '&encoder=json'
     return executeSagexAPIJSONCall(sageApiUrl, "Result")
         
-# Checks if an airing has a favorite set up for it
 def getShowSeriesDescription(showexternalid):
     sageApiUrl = strUrl + '/sagex/api?command=EvaluateExpression&1=GetSeriesDescription(GetShowSeriesInfo(GetShowForExternalID("' + showexternalid + '")))&encoder=json'
     return executeSagexAPIJSONCall(sageApiUrl, "Result")
         
+def isAiringLiveNow(starttime, endtime):
+    now = int(time.time()) * 1000
+    if(now >= starttime and now < endtime):
+        return True
+    return False
+
 def executeSagexAPIJSONCall(url, resultToGet):
     print "*** sagex request URL:" + url
     try:
