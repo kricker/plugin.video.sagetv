@@ -129,7 +129,7 @@ elif(args[0] == "watchnow"):
         strFilepath = mf.get("SegmentFiles")[0]
         mappedfilepath = filemap(strFilepath)
         print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
-        print "Attempting to playback mediafileid=%s at filepath=%s" % (mediaFileID, strFilepath)
+        print "Attempting to playback mediafileid=%s at filepath=%s" % (mediaFileID, mappedfilepath)
         xbmc.executebuiltin("PlayMedia('%s')" % strFilepath)
     else:
         xbmc.executebuiltin("Notification('SageTV addon','Unable to playback live TV')")
