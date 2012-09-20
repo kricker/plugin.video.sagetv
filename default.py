@@ -53,7 +53,7 @@ def TOPLEVELCATEGORIES():
     url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
     plugins = executeSagexAPIJSONCall(url, "Result")
     if(len(plugins) == 0):
-        xbmcgui.Dialog().ok("SageTV Server Not Found","Unable to connect to your SageTV server.", "1) Please confirm it is running.", "2. Confirm the settings of this addon are correct.")
+        xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
         return        
         
     sagexVersion = ""
@@ -63,10 +63,10 @@ def TOPLEVELCATEGORIES():
  
     print "TOPLEVELCATEGORIES STARTED; sagex-api-services version=" + sagexVersion
     if(sagexVersion == ""):
-        xbmcgui.Dialog().ok("Dependency Missing","This addon requires sagex-api-services version " + MIN_VERSION_SAGEX_REQUIRED, "You do not have the sagex-api plugin installed","Please install sagex-api-services to enable this plugin.")
+        xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + " " + MIN_VERSION_SAGEX_REQUIRED, __language__(21006),__language__(21007))
         return        
     if(comparePluginVersions(sagexVersion, MIN_VERSION_SAGEX_REQUIRED) < 0):
-        xbmcgui.Dialog().ok("Dependency Missing","This addon requires sagex-api-services version " + MIN_VERSION_SAGEX_REQUIRED, "You have version " + sagexVersion,"Please install/upgrade your sagex-api-services version to " + MIN_VERSION_SAGEX_REQUIRED)
+        xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + MIN_VERSION_SAGEX_REQUIRED, __language__(21008) + " " + sagexVersion,__language__(21009) + " " + MIN_VERSION_SAGEX_REQUIRED)
         return
 
     addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?c=xbmc:GetTVMediaFilesGroupedByTitle&size=500&encoder=json',1,IMAGE_POSTER,'Browse previously recorded and currently recording shows')
@@ -286,7 +286,7 @@ def VIEWAIRINGSONCHANNEL(url,name):
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
 def SEARCHFORRECORDINGS(url,name):
-    titleToSearchFor = common.getUserInput("Search","")
+    titleToSearchFor = common.getUserInput(__language__(21010),"")
     url = strUrl + '/sagex/api?c=xbmc:SearchForMediaFiles&1=%s&size=100&encoder=json' % urllib2.quote(titleToSearchFor.encode("utf8"))
     #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"), "GetMediaTitle", "' + urllib2.quote(titleToSearchFor.encode("utf8")) + '", true)&size=100&encoder=json'
     mfs = executeSagexAPIJSONCall(url, "Result")
@@ -345,7 +345,7 @@ def SEARCHFORRECORDINGS(url,name):
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
 def SEARCHFORAIRINGS(url,name):
-    titleToSearchFor = common.getUserInput("Search","")
+    titleToSearchFor = common.getUserInput(__language__(21010),"")
     now = time.time()
     startRange = str(long(now * 1000))
     #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime","%s",java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), startRange)
@@ -424,13 +424,13 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
 
         if(bisAiringRecording):
           if(isfavorite):
-            liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+            liz.addContextMenuItems([(__language__(21016), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), (__language__(21017), 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), (__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
           else:
-            liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
+            liz.addContextMenuItems([(__language__(21016), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), (__language__(21017), 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
         else:
           if(isfavorite):
-            liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
-          liz.addContextMenuItems([('Delete Show', 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')')], True)
+            liz.addContextMenuItems([(__language__(21016), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'), (__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+          liz.addContextMenuItems([(__language__(21016), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')')], True)
 
         liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio } )
         liz.setIconImage(iconimage)
@@ -451,20 +451,20 @@ def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,sh
     
     if(bisAiringScheduledToRecord):
         if(isfavorite):
-            liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+            liz.addContextMenuItems([(__language__(21017), 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'), (__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
         else:
-            liz.addContextMenuItems([('Cancel Recording', 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
+            liz.addContextMenuItems([(__language__(21017), 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')')], True)
     else:
         if(isfavorite):
-            liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')'), ('Remove Favorite', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
+            liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')'), (__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')')], True)
         else:
             #Check if an airing is airing live right now; if it is, provide the ability to watch it live
             bisAiringLiveNow = isAiringLiveNow(starttime, endtime)
             print "bisAiringLiveNow=" + str(bisAiringLiveNow)
             if(bisAiringLiveNow):
-                liz.addContextMenuItems([('Watch Now', 'XBMC.RunScript(' + scriptToRun + ', ' + actionWatchNow + ')'), ('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
+                liz.addContextMenuItems([(__language__(21020), 'XBMC.RunScript(' + scriptToRun + ', ' + actionWatchNow + ')'), (__language__(21019), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
             else:
-                liz.addContextMenuItems([('Record', 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
+                liz.addContextMenuItems([(__language__(21019), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')')], True)
 
     liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio } )
     liz.setIconImage(iconimage)

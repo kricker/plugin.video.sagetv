@@ -48,6 +48,8 @@ def filemap(filepath):
     return filepath
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
+__language__ = __settings__.getLocalizedString
+
 # SageTV recording Directories for path replacement
 sage_rec = __settings__.getSetting("sage_rec")
 sage_unc = __settings__.getSetting("sage_unc")
@@ -77,12 +79,12 @@ if(args[0] in ["delete","cancelrecording","removefavorite","record"]):
     sageApiUrl = args[1]
     urllib.urlopen(sageApiUrl)
     if(args[0] == "delete"):
-        xbmc.executebuiltin("Notification('SageTV addon','Delete successful')")
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21012) + ")")
     elif(args[0] == "record"):
-        xbmc.executebuiltin("Notification('SageTV addon','Scheduled recording successful')")
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21013) + ")")
     xbmc.executebuiltin("Container.Refresh")
 elif(args[0] == "watchnow"):
-    xbmc.executebuiltin("Notification('SageTV addon','Attemping to playback live TV')")
+    xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21014) + ")")
     strUrl = args[1]
     airingID = args[2]    
     sageApiUrl = strUrl + '/sagex/api?command=Record&1=airing:' + airingID
@@ -132,7 +134,7 @@ elif(args[0] == "watchnow"):
         print "Attempting to playback mediafileid=%s at filepath=%s" % (mediaFileID, mappedfilepath)
         xbmc.executebuiltin("PlayMedia('%s')" % strFilepath)
     else:
-        xbmc.executebuiltin("Notification('SageTV addon','Unable to playback live TV')")
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")
         print "NOTHING IS RECORDING"
         #return None
 else:
