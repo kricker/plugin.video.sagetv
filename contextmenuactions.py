@@ -39,7 +39,37 @@ def unicodeToStr(obj):
     else:
         return obj # leave numbers and booleans alone
 
+# Map file recording path to the first matching UNC path
+def filemap(filepath):
+    for (rec, unc) in sagemappings:
+        if ( filepath.find(rec) != -1 ):
+            return filepath.replace(rec, unc)
 
+    return filepath
+
+__settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
+# SageTV recording Directories for path replacement
+sage_rec = __settings__.getSetting("sage_rec")
+sage_unc = __settings__.getSetting("sage_unc")
+sage_rec2 = __settings__.getSetting("sage_rec2")
+sage_unc2 = __settings__.getSetting("sage_unc2")
+sage_rec3 = __settings__.getSetting("sage_rec3")
+sage_unc3 = __settings__.getSetting("sage_unc3")
+sage_rec4 = __settings__.getSetting("sage_rec4")
+sage_unc4 = __settings__.getSetting("sage_unc4")
+sage_rec5 = __settings__.getSetting("sage_rec5")
+sage_unc5 = __settings__.getSetting("sage_unc5")
+
+sagemappings = [ (sage_rec, sage_unc) ]
+
+if ( sage_unc2 != '' and sage_unc2 != None ):
+    sagemappings.append( (sage_rec2, sage_unc2) )
+if ( sage_unc3 != '' and sage_unc3 != None ):
+    sagemappings.append( (sage_rec3, sage_unc3) )
+if ( sage_unc4 != '' and sage_unc4 != None ):
+    sagemappings.append( (sage_rec4, sage_unc4) )
+if ( sage_unc5 != '' and sage_unc5 != None ):
+    sagemappings.append( (sage_rec5, sage_unc5) )
         
 #Get the passed in argument from the addContextMenuItems() call in default.py
 args = sys.argv[1].split("|")
@@ -97,6 +127,8 @@ elif(args[0] == "watchnow"):
             sleep(1)
             tries = tries+1
         strFilepath = mf.get("SegmentFiles")[0]
+        mappedfilepath = filemap(strFilepath)
+        print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
         print "Attempting to playback mediafileid=%s at filepath=%s" % (mediaFileID, strFilepath)
         xbmc.executebuiltin("PlayMedia('%s')" % strFilepath)
     else:
