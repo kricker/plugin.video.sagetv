@@ -10,7 +10,7 @@ from datetime import date
 
 common = CommonFunctions
 
-__settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
+__settings__ = xbmcaddon.Addon(id='plugin.video.sagetv')
 __language__ = __settings__.getLocalizedString
 __cwd__      = __settings__.getAddonInfo('path')
 
@@ -416,7 +416,7 @@ def get_params():
 def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid,seasonnum,episodenum,studio,isfavorite):
         ok=True
         liz=xbmcgui.ListItem(name)
-        scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
+        scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
         actionDelete = "delete|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
         actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
@@ -441,7 +441,7 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
 def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,airingid,seasonnum,episodenum,studio,isfavorite,starttime,endtime):
     ok=True
     liz=xbmcgui.ListItem(name)
-    scriptToRun = "special://home/addons/plugin.video.SageTV/contextmenuactions.py"
+    scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
     actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=airing:' + airingid
     actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
     actionRecord = "record|" + strUrl + '/sagex/api?command=Record&1=airing:' + airingid
