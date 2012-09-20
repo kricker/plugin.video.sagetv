@@ -47,7 +47,7 @@ def filemap(filepath):
 
     return filepath
 
-__settings__ = xbmcaddon.Addon(id='plugin.video.SageTV')
+__settings__ = xbmcaddon.Addon(id='plugin.video.sagetv')
 __language__ = __settings__.getLocalizedString
 
 # SageTV recording Directories for path replacement
@@ -131,7 +131,7 @@ elif(args[0] == "watchnow"):
         strFilepath = mf.get("SegmentFiles")[0]
         mappedfilepath = filemap(strFilepath)
         print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
-        print "Attempting to playback mediafileid=%s at filepath=%s" % (mediaFileID, mappedfilepath)
+        print "Attempting to playback mediafileid=%s at mappedfilepath=%s" % (mediaFileID, mappedfilepath)
         xbmc.executebuiltin("PlayMedia('%s')" % strFilepath)
     else:
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")
