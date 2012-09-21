@@ -88,6 +88,11 @@ elif(args[0] == "watchnow"):
     strUrl = args[1]
     airingID = args[2]    
     sageApiUrl = strUrl + '/sagex/api?command=Record&1=airing:' + airingID
+    
+    #temp code to try to get the current listiem playing
+    #path = xbmc.getInfoLabel('ListItem.FileNameAndPath')
+    #print "pathhhhhhhhh=" + str(path)
+
     isRecording = False
     minWait = 1
     maxWait = 8
@@ -120,19 +125,21 @@ elif(args[0] == "watchnow"):
         currentSize = 0
         tries = 0
         maxTries = 10
+        minSizeNeededToStartPlaybackInBytes = 5000000
         sageApiUrl = strUrl + '/sagex/api?command=GetSize&1=mediafile:%s&encoder=json' % mediaFileID
-        while(currentSize == 0 and tries <= maxTries):
+        while(currentSize < minSizeNeededToStartPlaybackInBytes and tries <= maxTries):
             currentSize = executeSagexAPIJSONCall(sageApiUrl, "Result")
             print "Current playback size=" + str(currentSize)
-            if(currentSize > 0):
+            if(currentSize > minSizeNeededToStartPlaybackInBytes):
                 break
             sleep(1)
             tries = tries+1
         strFilepath = mf.get("SegmentFiles")[0]
         mappedfilepath = filemap(strFilepath)
-        mappedfilepath = "\\\\" + mappedfilepath
+        if(mappedfilepath.find("\\\\") >= 0):
+            mappedfilepath = "\\" + mappedfilepath
         print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
-        print "Attempting to playback mediafileid=%s at mappedfilepath=%s" % (mediaFileID, mappedfilepath)
+        print "Attempting to playback mediafileid=%s with size=%s at mappedfilepath=%s" % (mediaFileID, str(currentSize), mappedfilepath)
         xbmc.executebuiltin('PlayMedia("%s")' % mappedfilepath)
     else:
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")
