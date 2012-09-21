@@ -137,14 +137,14 @@ elif(args[0] == "watchnow"):
         if(currentSize < minSizeNeededToStartPlaybackInBytes):
             # if the mediafile is not growing fast enough and we passed the max tries, playback has failed
             xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21021) + ")")
-            return
-        strFilepath = mf.get("SegmentFiles")[0]
-        mappedfilepath = filemap(strFilepath)
-        if(mappedfilepath.find("\\\\") >= 0):
-            mappedfilepath = "\\" + mappedfilepath
-        print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
-        print "Attempting to playback mediafileid=%s with size=%s at mappedfilepath=%s" % (mediaFileID, str(currentSize), mappedfilepath)
-        xbmc.executebuiltin('PlayMedia("%s")' % mappedfilepath)
+        else:
+            strFilepath = mf.get("SegmentFiles")[0]
+            mappedfilepath = filemap(strFilepath)
+            if(mappedfilepath.find("\\\\") >= 0):
+                mappedfilepath = "\\" + mappedfilepath
+            print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
+            print "Attempting to playback mediafileid=%s with size=%s at mappedfilepath=%s" % (mediaFileID, str(currentSize), mappedfilepath)
+            xbmc.executebuiltin('PlayMedia("%s")' % mappedfilepath)
     else:
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")
         print "NOTHING IS RECORDING"
