@@ -52,7 +52,7 @@ def TOPLEVELCATEGORIES():
 
     url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
     plugins = executeSagexAPIJSONCall(url, "Result")
-    if(len(plugins) == 0):
+    if(plugins == None or len(plugins) == 0):
         xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
         return        
         
