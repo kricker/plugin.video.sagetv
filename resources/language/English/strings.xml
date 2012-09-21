@@ -30,4 +30,5 @@
     <string id="21018">Remove Favorite</string>
     <string id="21019">Record</string>
     <string id="21020">Watch Now</string>
+    <string id="21021">Playback failed; filesize not big enough for playback</string>
 </strings>

@@ -134,6 +134,10 @@ elif(args[0] == "watchnow"):
                 break
             sleep(1)
             tries = tries+1
+        if(currentSize < minSizeNeededToStartPlaybackInBytes):
+            # if the mediafile is not growing fast enough and we passed the max tries, playback has failed
+            xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21021) + ")")
+            return
         strFilepath = mf.get("SegmentFiles")[0]
         mappedfilepath = filemap(strFilepath)
         if(mappedfilepath.find("\\\\") >= 0):
