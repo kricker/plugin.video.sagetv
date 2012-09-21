@@ -130,9 +130,10 @@ elif(args[0] == "watchnow"):
             tries = tries+1
         strFilepath = mf.get("SegmentFiles")[0]
         mappedfilepath = filemap(strFilepath)
+        mappedfilepath = mappedfilepath.replace("\\\\","smb://")
         print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
         print "Attempting to playback mediafileid=%s at mappedfilepath=%s" % (mediaFileID, mappedfilepath)
-        xbmc.executebuiltin("PlayMedia('%s')" % strFilepath)
+        xbmc.executebuiltin("PlayMedia('%s')" % mappedfilepath)
     else:
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")
         print "NOTHING IS RECORDING"

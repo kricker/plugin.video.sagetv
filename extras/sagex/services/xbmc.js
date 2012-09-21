@@ -54,6 +54,8 @@ function GetMediaFilesForShowWithSubsetOfProperties(showtitle) {
       show.put('AiringStartTime', AiringAPI.GetAiringStartTime(mf));
       show.put('OriginalAiringDate', ShowAPI.GetOriginalAiringDate(mf));
       show.put('SegmentFiles', MediaFileAPI.GetSegmentFiles(mf));
+      show.put('WatchedDuration', AiringAPI.GetWatchedDuration(mf));
+      show.put('IsWatched', AiringAPI.IsWatched(mf));
       shows.add(show);
    }
    return shows;
@@ -84,6 +86,8 @@ function SearchForMediaFiles(searchterm) {
           show.put('AiringStartTime', AiringAPI.GetAiringStartTime(mf));
           show.put('OriginalAiringDate', ShowAPI.GetOriginalAiringDate(mf));
           show.put('SegmentFiles', MediaFileAPI.GetSegmentFiles(mf));
+          show.put('WatchedDuration', AiringAPI.GetWatchedDuration(mf));
+          show.put('IsWatched', AiringAPI.IsWatched(mf));
           shows.add(show);
       }
    }
