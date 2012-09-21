@@ -133,7 +133,7 @@ elif(args[0] == "watchnow"):
         mappedfilepath = "\\\\" + mappedfilepath
         print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
         print "Attempting to playback mediafileid=%s at mappedfilepath=%s" % (mediaFileID, mappedfilepath)
-        xbmc.executebuiltin("PlayMedia('%s')" % mappedfilepath)
+        xbmc.executebuiltin('PlayMedia("%s")' % mappedfilepath)
     else:
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")
         print "NOTHING IS RECORDING"
