@@ -5,7 +5,7 @@ import simplejson as json
 import unicodedata
 import time
 from xml.dom.minidom import parse
-from time import strftime
+from time import strftime,sleep
 from datetime import date
 
 common = CommonFunctions
@@ -51,10 +51,23 @@ confluence_views = [500,501,502,503,504,508]
 def TOPLEVELCATEGORIES():
 
     url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
+    maxTries = 8
+    tries = 0
     plugins = executeSagexAPIJSONCall(url, "Result")
-    if(plugins == None or len(plugins) == 0):
+    if(plugins == None):
+        #If the sage server can't be found, first try using wake-on-lan (WOL) to wake it up)
+        sage_mac = __settings__.getSetting("sage_mac")
+        print "SageTV server can't be found; attempting WOL to " + sage_mac
+        if(sage_mac != ""):
+            xbmc.executebuiltin("WakeOnLan('" + sage_mac + "')")
+    while plugins == None and tries <= maxTries:
+        sleep(1)
+        tries = tries+1
+        plugins = executeSagexAPIJSONCall(url, "Result")
+
+    if(plugins == None):
         xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
-        return        
+        return
         
     sagexVersion = ""
     for plugin in plugins:
