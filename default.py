@@ -59,7 +59,7 @@ def TOPLEVELCATEGORIES():
         sage_mac = __settings__.getSetting("sage_mac")
         print "SageTV server can't be found; attempting WOL to " + sage_mac
         if(sage_mac != ""):
-            xbmc.executebuiltin("WakeOnLan('" + sage_mac + "')")
+            xbmc.executebuiltin('WakeOnLan("%s")' % sage_mac)
     while plugins == None and tries <= maxTries:
         sleep(1)
         tries = tries+1
