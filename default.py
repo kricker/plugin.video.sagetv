@@ -54,21 +54,24 @@ def TOPLEVELCATEGORIES():
     maxTries = 8
     tries = 0
     plugins = executeSagexAPIJSONCall(url, "Result")
+    sage_mac = __settings__.getSetting("sage_mac")
     if(plugins == None):
         #If the sage server can't be found, first try using wake-on-lan (WOL) to wake it up)
-        sage_mac = __settings__.getSetting("sage_mac")
         print "SageTV server can't be found; attempting WOL to " + sage_mac
-        if(sage_mac != ""):
-            xbmc.executebuiltin('WakeOnLan("%s")' % sage_mac)
+        xbmc.executebuiltin('WakeOnLan("%s")' % sage_mac)
     while plugins == None and tries <= maxTries:
         sleep(1)
+        print "SageTV server still can't be found after %s tries; attempting WOL to %s" % (str(tries), sage_mac)
+        xbmc.executebuiltin('WakeOnLan("%s")' % sage_mac)
         tries = tries+1
         plugins = executeSagexAPIJSONCall(url, "Result")
 
     if(plugins == None):
+        print "After %s tries, still unable to locate the SageTV server.  Quitting..." % str(tries)
         xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
         return
         
+    print "Successfully able to connect to the SageTV server @ " + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
     sagexVersion = ""
     for plugin in plugins:
         if(plugin.get("PluginIdentifier") == "sagex-api-services"):
@@ -92,7 +95,10 @@ def TOPLEVELCATEGORIES():
     
 def VIEWLISTOFRECORDEDSHOWS(url,name):
     #Get the list of Recorded shows
-    addDir('[All Shows]',strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=&size=500&encoder=json',11,IMAGE_POSTER,IMAGE_THUMB,'')
+    now = time.time()
+    strNowObject = date.fromtimestamp(now)
+    now = "%02d.%02d.%s" % (strNowObject.day+1, strNowObject.month, strNowObject.year)
+    addDir('[All Shows]',strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=&size=500&encoder=json',11,IMAGE_POSTER,IMAGE_THUMB,'',now)
     titleObjects = executeSagexAPIJSONCall(url, "Result")
     titles = titleObjects.keys()
     for title in titles:
@@ -102,6 +108,9 @@ def VIEWLISTOFRECORDEDSHOWS(url,name):
             strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
             strMediaFileID = mfSubset.get("MediaFileID")
             strExternalID = mfSubset.get("ShowExternalID")
+            startTime = float(mfSubset.get("AiringStartTime") // 1000)
+            strAiringdateObject = date.fromtimestamp(startTime)
+            strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.day, strAiringdateObject.month, strAiringdateObject.year)
             break
         urlToShowEpisodes = strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=' + urllib2.quote(strTitle.encode("utf8")) + '&size=500&encoder=json'
         #urlToShowEpisodes = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"),"GetMediaTitle","' + urllib2.quote(strTitle.encode("utf8")) + '",true)&size=500&encoder=json'
@@ -109,7 +118,7 @@ def VIEWLISTOFRECORDEDSHOWS(url,name):
         print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         #print "ADDING imageUrl=" + imageUrl
-        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalID)
+        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalID,strAiringdate)
 
 def VIEWLISTOFEPISODESFORSHOW(url,name):
     mfs = executeSagexAPIJSONCall(url, "Result")
@@ -542,14 +551,14 @@ def addTopLevelDir(name,url,mode,iconimage,dirdescription):
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
 
-def addDir(name,url,mode,iconimage,thumbimage,showexternalid):
+def addDir(name,url,mode,iconimage,thumbimage,showexternalid,airingdate):
     u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
     ok=True
     liz=xbmcgui.ListItem(name)
     strSeriesDescription = ""
     strSeriesDescription = getShowSeriesDescription(showexternalid)
 
-    liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": strSeriesDescription } )
+    liz.setInfo(type="video", infoLabels={ "Title": name, "Plot": strSeriesDescription, "date": airingdate } )
     liz.setIconImage(iconimage)
     if(thumbimage != ""):
         liz.setThumbnailImage(thumbimage)
@@ -642,6 +651,7 @@ elif mode==1:
     print ""+url
     VIEWLISTOFRECORDEDSHOWS(url,name)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
         
 elif mode==11:
     print ""+url

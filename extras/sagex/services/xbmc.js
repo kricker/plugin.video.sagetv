@@ -17,6 +17,7 @@ function GetTVMediaFilesWithSubsetOfProperties() {
       show.put('MediaFileID', ""+MediaFileAPI.GetMediaFileID(mf));
       show.put('ShowTitle', MediaFileAPI.GetMediaTitle(mf));
       show.put('ShowExternalID', ShowAPI.GetShowExternalID(mf));
+      show.put('AiringStartTime', AiringAPI.GetAiringStartTime(mf));
       shows.add(show);
    }
    return shows;
