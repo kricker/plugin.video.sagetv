@@ -3,22 +3,37 @@ import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 from time import sleep
 import simplejson as json
 
+__settings__ = xbmcaddon.Addon(id='plugin.video.sagetv')
+__language__ = __settings__.getLocalizedString
+sage_mac = __settings__.getSetting("sage_mac")
+
+
 DEFAULT_CHARSET = 'utf-8'
 
 def executeSagexAPIJSONCall(url, resultToGet):
     print "*** sagex request URL:" + url
+    url_error = False
+    input = ""
     try:
         input = urllib.urlopen(url)
+        
     except IOError, i:
         print "ERROR in executeSagexAPIJSONCall: Unable to connect to SageTV server"
-        return None
+        xbmc.executebuiltin('WakeOnLan(%s)'% sage_mac)
+        xbmc.sleep(15000)
+        url_error = True
+        
+    if url_error:
+      input = urllib.urlopen(url)
+      
     fileData = input.read()
     resp = unicodeToStr(json.JSONDecoder().decode(fileData))
 
     objKeys = resp.keys()
     numKeys = len(objKeys)
     if(numKeys == 1):
-        return resp.get(resultToGet)
+        return resp.get(resultToGet)    
+
     else:
         return None
 
@@ -38,17 +53,6 @@ def unicodeToStr(obj):
         return obj
     else:
         return obj # leave numbers and booleans alone
-
-# Map file recording path to the first matching UNC path
-def filemap(filepath):
-    for (rec, unc) in sagemappings:
-        if ( filepath.find(rec) != -1 ):
-            return filepath.replace(rec, unc)
-
-    return filepath
-
-__settings__ = xbmcaddon.Addon(id='plugin.video.sagetv')
-__language__ = __settings__.getLocalizedString
 
 # SageTV recording Directories for path replacement
 sage_rec = __settings__.getSetting("sage_rec")
@@ -72,6 +76,14 @@ if ( sage_unc4 != '' and sage_unc4 != None ):
     sagemappings.append( (sage_rec4, sage_unc4) )
 if ( sage_unc5 != '' and sage_unc5 != None ):
     sagemappings.append( (sage_rec5, sage_unc5) )
+
+# Map file recording path to the first matching UNC path
+def filemap(filepath):
+    for (rec, unc) in sagemappings:
+        if ( filepath.find(rec) != -1 ):
+            return filepath.replace(rec, unc)
+
+    return filepath
         
 #Get the passed in argument from the addContextMenuItems() call in default.py
 args = sys.argv[1].split("|")
@@ -139,12 +151,10 @@ elif(args[0] == "watchnow"):
             xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21021) + ")")
         else:
             strFilepath = mf.get("SegmentFiles")[0]
-            mappedfilepath = filemap(strFilepath)
-            if(mappedfilepath.find("\\\\") >= 0):
-                mappedfilepath = "\\" + mappedfilepath
-            print "strFilepath=" + strFilepath + "; mappedfilepath=" + mappedfilepath
-            print "Attempting to playback mediafileid=%s with size=%s at mappedfilepath=%s" % (mediaFileID, str(currentSize), mappedfilepath)
-            xbmc.executebuiltin('PlayMedia("%s")' % mappedfilepath)
+            print "Sage recording path: " + sage_rec
+            print "Network path: " + sage_unc
+            print "Attempting to playback mediafileid=%s with size=%s at strFilepath=%s" % (mediaFileID, str(currentSize), filemap(strFilepath))
+            xbmc.executebuiltin('PlayMedia("%s")' % filemap(strFilepath))
     else:
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")
         print "NOTHING IS RECORDING"

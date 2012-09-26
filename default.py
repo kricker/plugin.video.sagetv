@@ -13,6 +13,7 @@ common = CommonFunctions
 __settings__ = xbmcaddon.Addon(id='plugin.video.sagetv')
 __language__ = __settings__.getLocalizedString
 __cwd__      = __settings__.getAddonInfo('path')
+sage_mac = __settings__.getSetting("sage_mac")
 
 # SageTV recording Directories for path replacement
 sage_rec = __settings__.getSetting("sage_rec")
@@ -37,6 +38,14 @@ if ( sage_unc4 != '' and sage_unc4 != None ):
 if ( sage_unc5 != '' and sage_unc5 != None ):
     sagemappings.append( (sage_rec5, sage_unc5) )
 
+# Map file recording path to the first matching UNC path
+def filemap(filepath):
+    for (rec, unc) in sagemappings:
+        if ( filepath.find(rec) != -1 ):
+            return filepath.replace(rec, unc)
+
+    return filepath
+
 # SageTV URL based on user settings
 strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.getSetting("sage_pass") + '@' + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
 IMAGE_POSTER = xbmc.translatePath(os.path.join(__cwd__,'resources','media','poster.jpg'))
@@ -54,20 +63,9 @@ def TOPLEVELCATEGORIES():
     maxTries = 8
     tries = 0
     plugins = executeSagexAPIJSONCall(url, "Result")
-    sage_mac = __settings__.getSetting("sage_mac")
-    if(plugins == None):
-        #If the sage server can't be found, first try using wake-on-lan (WOL) to wake it up)
-        print "SageTV server can't be found; attempting WOL to " + sage_mac
-        xbmc.executebuiltin('WakeOnLan("%s")' % sage_mac)
-    while plugins == None and tries <= maxTries:
-        sleep(1)
-        print "SageTV server still can't be found after %s tries; attempting WOL to %s" % (str(tries), sage_mac)
-        xbmc.executebuiltin('WakeOnLan("%s")' % sage_mac)
-        tries = tries+1
-        plugins = executeSagexAPIJSONCall(url, "Result")
 
-    if(plugins == None):
-        print "After %s tries, still unable to locate the SageTV server.  Quitting..." % str(tries)
+    if(plugins == None or len(plugins) == 0):
+        print "SageTV not detected, or required plugins not installed"
         xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
         return
         
@@ -178,15 +176,6 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
-
-
-# Map file recording path to the first matching UNC path
-def filemap(filepath):
-    for (rec, unc) in sagemappings:
-        if ( filepath.find(rec) != -1 ):
-            return filepath.replace(rec, unc)
-
-    return filepath
 
 def VIEWUPCOMINGRECORDINGS(url,name):
     #req = urllib.urlopen(url)
@@ -523,18 +512,28 @@ def isAiringLiveNow(starttime, endtime):
 
 def executeSagexAPIJSONCall(url, resultToGet):
     print "*** sagex request URL:" + url
+    url_error = False
+    input = ""
     try:
         input = urllib.urlopen(url)
+        
     except IOError, i:
         print "ERROR in executeSagexAPIJSONCall: Unable to connect to SageTV server"
-        return None
+        xbmc.executebuiltin('WakeOnLan(%s)'% sage_mac)
+        xbmc.sleep(15000)
+        url_error = True
+        
+    if url_error:
+      input = urllib.urlopen(url)
+      
     fileData = input.read()
     resp = unicodeToStr(json.JSONDecoder().decode(fileData))
 
     objKeys = resp.keys()
     numKeys = len(objKeys)
     if(numKeys == 1):
-        return resp.get(resultToGet)
+        return resp.get(resultToGet)    
+
     else:
         return None
 

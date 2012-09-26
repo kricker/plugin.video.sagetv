@@ -1,3 +1,9 @@
+[B]Version 1.2.4 (Sep 25, 2012)[/B]
+- Fixed WOL support
+- Added sorting by date to "Watch Recordings"
+- Fixed local -> network path substitutions
+- Changed "UNC path" to "Network path" in settings
+
 [B]Version 1.2.3 (Sep 24, 2012)[/B]
 - Added WOL support
 
