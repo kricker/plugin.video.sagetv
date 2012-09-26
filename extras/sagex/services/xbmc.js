@@ -10,6 +10,7 @@
 function GetTVMediaFilesWithSubsetOfProperties() {
    var shows = new java.util.ArrayList();
    var files =  MediaFileAPI.GetMediaFiles("T");
+   files = Database.Sort(files,true,"GetAiringStartTime")
    var s = files.length;
    for (var i=0;i<s;i++) {
       var mf = files[i];
