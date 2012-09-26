@@ -5,6 +5,7 @@
        provider-name="kricker,lehighbri,aaronb">
   <requires>
     <import addon="xbmc.python" version="2.0"/>
+    <import addon='script.module.parsedom' version='1.1.0'/>
   </requires>
   <extension point="xbmc.python.pluginsource"
             library="default.py">
