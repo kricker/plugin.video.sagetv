@@ -106,9 +106,8 @@ function GetTVMediaFilesGroupedByTitle() {
       if (shows==null) {
          shows = new java.util.ArrayList();
          grouped.put(file.get('ShowTitle'), shows);
-         // add full mediafile
+         shows.add(file);
       }
-      shows.add(file);
    }
    return grouped;
 }
