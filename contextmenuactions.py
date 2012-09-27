@@ -137,7 +137,7 @@ elif(args[0] == "watchnow"):
         currentSize = 0
         tries = 0
         maxTries = 10
-        minSizeNeededToStartPlaybackInBytes = 5000000
+        minSizeNeededToStartPlaybackInBytes = 0000000
         sageApiUrl = strUrl + '/sagex/api?command=GetSize&1=mediafile:%s&encoder=json' % mediaFileID
         while(currentSize < minSizeNeededToStartPlaybackInBytes and tries <= maxTries):
             currentSize = executeSagexAPIJSONCall(sageApiUrl, "Result")
@@ -151,9 +151,12 @@ elif(args[0] == "watchnow"):
             xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21021) + ")")
         else:
             strFilepath = mf.get("SegmentFiles")[0]
+            # add extra \s due to builtin PlayMedia stripping the leading \
+            strFilepath = "\\\\" + strFilepath
             print "Sage recording path: " + sage_rec
             print "Network path: " + sage_unc
             print "Attempting to playback mediafileid=%s with size=%s at strFilepath=%s" % (mediaFileID, str(currentSize), filemap(strFilepath))
+            xbmc.sleep(5000)
             xbmc.executebuiltin('PlayMedia("%s")' % filemap(strFilepath))
     else:
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21015) + ")")

@@ -1,3 +1,6 @@
+[B]Version 1.2.5 (Sep 25, 2012)[/B]
+- Workaround added for network path issues for LiveTV playback (for now)
+
 [B]Version 1.2.4 (Sep 25, 2012)[/B]
 - Fixed WOL support
 - Added sorting by date to "Watch Recordings"
