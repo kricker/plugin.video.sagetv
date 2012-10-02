@@ -137,8 +137,8 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         episodeNum = int(mfSubset.get("EpisodeNumber"))
         studio = mfSubset.get("AiringChannelName")
         isFavorite = mfSubset.get("IsFavorite")
-        watchedDuration = mfSubset.get("WatchedDuration")
-        fileDuration = mfSubset.get("FileDuration")
+        watchedDuration = mfSubset.get("WatchedDuration") // 1000
+        fileDuration = mfSubset.get("FileDuration") // 1000
         isWatched = mfSubset.get("IsWatched")
         
         startTime = float(mfSubset.get("AiringStartTime") // 1000)
@@ -322,8 +322,8 @@ def SEARCHFORRECORDINGS(url,name):
         episodeNum = int(mfSubset.get("EpisodeNumber"))
         studio = mfSubset.get("AiringChannelName")
         isFavorite = mfSubset.get("IsFavorite")
-        watchedDuration = mfSubset.get("WatchedDuration")
-        fileDuration = mfSubset.get("FileDuration")
+        watchedDuration = mfSubset.get("WatchedDuration") // 1000
+        fileDuration = mfSubset.get("FileDuration") // 1000
         isWatched = mfSubset.get("IsWatched")
         
         startTime = float(mfSubset.get("AiringStartTime") // 1000)
