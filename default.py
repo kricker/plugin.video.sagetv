@@ -70,10 +70,10 @@ def TOPLEVELCATEGORIES():
     print "Successfully able to connect to the SageTV server @ " + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
     sagexVersion = ""
     for plugin in plugins:
-        if(plugin.get("PluginIdentifier") == "sagex-api-services"):
+        if(plugin.get("PluginIdentifier") == "sagex-api"):
             sagexVersion = plugin.get("PluginVersion")
  
-    print "TOPLEVELCATEGORIES STARTED; sagex-api-services version=" + sagexVersion
+    print "TOPLEVELCATEGORIES STARTED; sagex-api version=" + sagexVersion
     if(sagexVersion == ""):
         xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + " " + MIN_VERSION_SAGEX_REQUIRED, __language__(21006),__language__(21007))
         return        
@@ -450,10 +450,10 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         if(iswatched):
             liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 7, "watched": True } )
         else:
+            liz.setProperty("resumetime",str(resumetime))
+            liz.setProperty("totaltime",str(totaltime))
             liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 6, "watched": False } )
 
-        liz.setProperty("resumetime",str(resumetime))
-        liz.setProperty("totaltime",str(totaltime))
         
         liz.setIconImage(iconimage)
         liz.setThumbnailImage(iconimage)
