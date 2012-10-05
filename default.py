@@ -94,7 +94,7 @@ def VIEWLISTOFRECORDEDSHOWS(url,name):
     now = time.time()
     strNowObject = date.fromtimestamp(now)
     now = "%02d.%02d.%s" % (strNowObject.day+1, strNowObject.month, strNowObject.year)
-    addDir('[All Shows]',strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=&size=500&encoder=json',11,IMAGE_POSTER,IMAGE_THUMB,'',now)
+    addDir('[All Shows]',strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=&size=500&encoder=json',11,IMAGE_POSTER,IMAGE_THUMB,'',now,'')
     titleObjects = executeSagexAPIJSONCall(url, "Result")
     titles = titleObjects.keys()
     for title in titles:
@@ -113,8 +113,9 @@ def VIEWLISTOFRECORDEDSHOWS(url,name):
         #urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
         print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
+        fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
         #print "ADDING imageUrl=" + imageUrl
-        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalID,strAiringdate)
+        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalID,strAiringdate,fanartUrl)
 
 def VIEWLISTOFEPISODESFORSHOW(url,name):
     mfs = executeSagexAPIJSONCall(url, "Result")
@@ -172,7 +173,8 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         strFilepath = mfSubset.get("SegmentFiles")[0]
         
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
-        addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration)
+        fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
+        addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -355,7 +357,8 @@ def SEARCHFORRECORDINGS(url,name):
         strFilepath = mfSubset.get("SegmentFiles")[0]
         
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
-        addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration)
+        fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
+        addMediafileLink(strDisplayText,filemap(strFilepath),strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -428,7 +431,7 @@ def get_params():
                                 
         return param
 
-def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid,seasonnum,episodenum,studio,isfavorite,iswatched,resumetime,totaltime):
+def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid,seasonnum,episodenum,studio,isfavorite,iswatched,resumetime,totaltime,fanartimage):
         ok=True
         liz=xbmcgui.ListItem(name)
         scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
@@ -457,6 +460,7 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         
         liz.setIconImage(iconimage)
         liz.setThumbnailImage(iconimage)
+        liz.setProperty("fanart_image",fanartimage)
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False)
         return ok
 
@@ -553,7 +557,7 @@ def addTopLevelDir(name,url,mode,iconimage,dirdescription):
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
 
-def addDir(name,url,mode,iconimage,thumbimage,showexternalid,airingdate):
+def addDir(name,url,mode,iconimage,thumbimage,showexternalid,airingdate,fanartimage):
     u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
     ok=True
     liz=xbmcgui.ListItem(name)
@@ -566,6 +570,7 @@ def addDir(name,url,mode,iconimage,thumbimage,showexternalid,airingdate):
         liz.setThumbnailImage(thumbimage)
     else:
         liz.setThumbnailImage(iconimage)
+    liz.setProperty("fanart_image",fanartimage)
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
 
