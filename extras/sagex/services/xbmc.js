@@ -59,6 +59,7 @@ function GetMediaFilesForShowWithSubsetOfProperties(showtitle) {
       show.put('WatchedDuration', AiringAPI.GetWatchedDuration(mf));
       show.put('IsWatched', AiringAPI.IsWatched(mf));
       show.put('FileDuration', MediaFileAPI.GetFileDuration(mf));
+      show.put('IsLibraryFile', MediaFileAPI.IsLibraryFile(mf));
       shows.add(show);
    }
    return shows;
@@ -92,6 +93,7 @@ function SearchForMediaFiles(searchterm) {
           show.put('WatchedDuration', AiringAPI.GetWatchedDuration(mf));
           show.put('IsWatched', AiringAPI.IsWatched(mf));
           show.put('FileDuration', MediaFileAPI.GetFileDuration(mf));
+          show.put('IsLibraryFile', MediaFileAPI.IsLibraryFile(mf));
           shows.add(show);
       }
    }

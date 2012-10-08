@@ -141,6 +141,7 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         watchedDuration = mfSubset.get("WatchedDuration") // 1000
         fileDuration = mfSubset.get("FileDuration") // 1000
         isWatched = mfSubset.get("IsWatched")
+        isArchived = mfSubset.get("IsLibraryFile")
         
         startTime = float(mfSubset.get("AiringStartTime") // 1000)
         strAiringdateObject = date.fromtimestamp(startTime)
@@ -181,7 +182,7 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         print "************strMappedFilepath=" + str(strMappedFilepath)
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
-        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl)
+        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl,isArchived)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -334,6 +335,7 @@ def SEARCHFORRECORDINGS(url,name):
         watchedDuration = mfSubset.get("WatchedDuration") // 1000
         fileDuration = mfSubset.get("FileDuration") // 1000
         isWatched = mfSubset.get("IsWatched")
+        isArchived = mfSubset.get("IsLibraryFile")
         
         startTime = float(mfSubset.get("AiringStartTime") // 1000)
         strAiringdateObject = date.fromtimestamp(startTime)
@@ -372,7 +374,7 @@ def SEARCHFORRECORDINGS(url,name):
         print "************strMappedFilepath=" + str(strMappedFilepath)
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
-        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl)
+        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl,isArchived)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -445,14 +447,15 @@ def get_params():
                                 
         return param
 
-def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid,seasonnum,episodenum,studio,isfavorite,iswatched,resumetime,totaltime,fanartimage):
+def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,showtitle,mediafileid,airingid,seasonnum,episodenum,studio,isfavorite,iswatched,resumetime,totaltime,fanartimage,isArchived):
         ok=True
         liz=xbmcgui.ListItem(name)
         scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
         actionDelete = "delete|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
         actionSetWatched = "setwatched|" + strUrl + '/sagex/api?command=SetWatched&1=mediafile:' + mediafileid
         actionClearWatched = "clearwatched|" + strUrl + '/sagex/api?command=ClearWatched&1=mediafile:' + mediafileid
-        actionArchive = "archive|" + strUrl + '/sagex/api?command=MoveFileToLibrary&1=mediafile:' + mediafileid
+        actionSetArchived = "setarchived|" + strUrl + '/sagex/api?command=MoveFileToLibrary&1=mediafile:' + mediafileid
+        actionClearArchived = "cleararchived|" + strUrl + '/sagex/api?command=MoveTVFileOutOfLibrary&1=mediafile:' + mediafileid
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
         actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
         bisAiringRecording = isAiringRecording(airingid)
@@ -476,7 +479,11 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
             liz.setProperty("totaltime",str(totaltime))
             liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 6, "playcount": 0 } )
 
-        contextMenuItems.append((__language__(21024), 'XBMC.RunScript(' + scriptToRun + ', ' + actionArchive + ')'))
+        if(isArchived):
+            contextMenuItems.append((__language__(21025), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearArchived + ')'))
+        else:
+            contextMenuItems.append((__language__(21024), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetArchived + ')'))
+
         contextMenuItems.append((__language__(21016), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'))
         liz.addContextMenuItems(contextMenuItems, True)
         

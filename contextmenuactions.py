@@ -87,7 +87,7 @@ def filemap(filepath):
         
 #Get the passed in argument from the addContextMenuItems() call in default.py
 args = sys.argv[1].split("|")
-if(args[0] in ["delete","cancelrecording","removefavorite","record","setwatched","clearwatched","archive"]):
+if(args[0] in ["delete","cancelrecording","removefavorite","record","setwatched","clearwatched","setarchived","cleararchived"]):
     sageApiUrl = args[1]
     urllib.urlopen(sageApiUrl)
     if(args[0] == "delete"):
