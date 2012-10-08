@@ -87,13 +87,25 @@ def filemap(filepath):
         
 #Get the passed in argument from the addContextMenuItems() call in default.py
 args = sys.argv[1].split("|")
-if(args[0] in ["delete","cancelrecording","removefavorite","record","setwatched","clearwatched","setarchived","cleararchived"]):
+if(args[0] in ["cancelrecording","removefavorite","record","setwatched","clearwatched","setarchived","cleararchived"]):
     sageApiUrl = args[1]
     urllib.urlopen(sageApiUrl)
+    if(args[0] == "record"):
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21013) + ")")
+    xbmc.executebuiltin("Container.Refresh")
+elif(args[0][0:6] == "delete"):
+    firstApiCall = args[1]
+    #Check what kind of delete command was sent
+    deleteCommand = args[0].replace("delete","")
+    if(deleteCommand != ""):
+        secondApiCall = args[2]
+        urllib.urlopen(firstApiCall)
+        urllib.urlopen(secondApiCall)
+    else:
+        urllib.urlopen(firstApiCall)
+
     if(args[0] == "delete"):
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21012) + ")")
-    elif(args[0] == "record"):
-        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21013) + ")")
     xbmc.executebuiltin("Container.Refresh")
 elif(args[0] == "watchnow"):
     xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21014) + ")")

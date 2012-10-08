@@ -452,6 +452,9 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         liz=xbmcgui.ListItem(name)
         scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
         actionDelete = "delete|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
+        actionDeleteSetWatched = "deletesetwatched|" + strUrl + '/sagex/api?command=SetWatched&1=mediafile:' + mediafileid + "|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
+        actionDeleteClearWatched = "deleteclearwatched|" + strUrl + '/sagex/api?command=ClearWatched&1=mediafile:' + mediafileid + "|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
+        actionDeleteDontLike = "deletedontlike|" + strUrl + '/sagex/api?command=SetDontLike&1=mediafile:' + mediafileid + "|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
         actionSetWatched = "setwatched|" + strUrl + '/sagex/api?command=SetWatched&1=mediafile:' + mediafileid
         actionClearWatched = "clearwatched|" + strUrl + '/sagex/api?command=ClearWatched&1=mediafile:' + mediafileid
         actionSetArchived = "setarchived|" + strUrl + '/sagex/api?command=MoveFileToLibrary&1=mediafile:' + mediafileid
@@ -485,6 +488,9 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
             contextMenuItems.append((__language__(21024), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetArchived + ')'))
 
         contextMenuItems.append((__language__(21016), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'))
+        contextMenuItems.append((__language__(21026), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteSetWatched + ')'))
+        contextMenuItems.append((__language__(21027), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteClearWatched + ')'))
+        contextMenuItems.append((__language__(21028), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteDontLike + ')'))
         liz.addContextMenuItems(contextMenuItems, True)
         
         liz.setIconImage(iconimage)
