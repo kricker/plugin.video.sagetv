@@ -1,3 +1,7 @@
+[B]Version 1.2.8 (Oct 8, 2012)[/B]
+- Added support for playing back recordings that have multiple segments
+- Added "Set Watched" and "Clear Watched" context menu items
+
 [B]Version 1.2.7 (Oct 5, 2012)[/B]
 - Added support for background fanart
 
@@ -44,6 +48,3 @@
 
 [B]Version 1.0.0 (Sep 11, 2012)[/B]
 - Initial commit to Eden add-on system
-
-TODO:
--Sync watched status
