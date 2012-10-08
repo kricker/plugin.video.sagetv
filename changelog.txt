@@ -1,3 +1,6 @@
+[B]Version 1.2.9 (Oct 8, 2012)[/B]
+- Added "Archive" context menu item
+
 [B]Version 1.2.8 (Oct 8, 2012)[/B]
 - Added support for playing back recordings that have multiple segments
 - Added "Set Watched" and "Clear Watched" context menu items

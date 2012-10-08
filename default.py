@@ -452,6 +452,7 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         actionDelete = "delete|" + strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + mediafileid
         actionSetWatched = "setwatched|" + strUrl + '/sagex/api?command=SetWatched&1=mediafile:' + mediafileid
         actionClearWatched = "clearwatched|" + strUrl + '/sagex/api?command=ClearWatched&1=mediafile:' + mediafileid
+        actionArchive = "archive|" + strUrl + '/sagex/api?command=MoveFileToLibrary&1=mediafile:' + mediafileid
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
         actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
         bisAiringRecording = isAiringRecording(airingid)
@@ -475,6 +476,7 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
             liz.setProperty("totaltime",str(totaltime))
             liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 6, "playcount": 0 } )
 
+        contextMenuItems.append((__language__(21024), 'XBMC.RunScript(' + scriptToRun + ', ' + actionArchive + ')'))
         contextMenuItems.append((__language__(21016), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDelete + ')'))
         liz.addContextMenuItems(contextMenuItems, True)
         
