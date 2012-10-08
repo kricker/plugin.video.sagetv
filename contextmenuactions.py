@@ -97,7 +97,7 @@ elif(args[0][0:6] == "delete"):
     firstApiCall = args[1]
     #Check what kind of delete command was sent
     deleteCommand = args[0].replace("delete","")
-    if(deleteCommand != ""):
+    if(deleteCommand != "" and deleteCommand != "wrongrecording"):
         secondApiCall = args[2]
         urllib.urlopen(firstApiCall)
         urllib.urlopen(secondApiCall)

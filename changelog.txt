@@ -1,3 +1,6 @@
+[B]Version 1.2.11 (Oct 8, 2012)[/B]
+- Added "Delete/Wrong Recording" context menu item
+
 [B]Version 1.2.10 (Oct 8, 2012)[/B]
 - Added "Delete/Set Watched", "Delete/Clear Watched", and "Delete/Don't Like" context menu items
 
