@@ -1,3 +1,6 @@
+[B]Version 1.3.0 (Oct 9, 2012)[/B]
+- Added support for playing back recordings that have multiple segments (using stack://)
+
 [B]Version 1.2.12 (Oct 8, 2012)[/B]
 - Added "Add Favorite" context menu item (for airings and searches)
 
