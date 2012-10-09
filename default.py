@@ -51,7 +51,7 @@ strUrl = 'http://' + __settings__.getSetting("sage_user") + ':' + __settings__.g
 IMAGE_POSTER = xbmc.translatePath(os.path.join(__cwd__,'resources','media','poster.jpg'))
 IMAGE_THUMB = xbmc.translatePath(os.path.join(__cwd__,'resources','media','thumb.jpg'))
 DEFAULT_CHARSET = 'utf-8'
-MIN_VERSION_SAGEX_REQUIRED = "7.1.9.11"
+MIN_VERSION_SAGEX_REQUIRED = "7.1.9.12"
 
 # 500-THUMBNAIL 501/502/505/506/507/508-LIST 503-MINFO2 504-MINFO 515-MINFO3
 confluence_views = [500,501,502,503,504,508]
@@ -309,6 +309,8 @@ def VIEWAIRINGSONCHANNEL(url,name):
 
 def SEARCHFORRECORDINGS(url,name):
     titleToSearchFor = common.getUserInput(__language__(21010),"")
+    if(titleToSearchFor == "" or titleToSearchFor == None):
+        return
     url = strUrl + '/sagex/api?c=xbmc:SearchForMediaFiles&1=%s&size=100&encoder=json' % urllib2.quote(titleToSearchFor.encode("utf8"))
     #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"), "GetMediaTitle", "' + urllib2.quote(titleToSearchFor.encode("utf8")) + '", true)&size=100&encoder=json'
     mfs = executeSagexAPIJSONCall(url, "Result")
@@ -380,6 +382,8 @@ def SEARCHFORRECORDINGS(url,name):
 
 def SEARCHFORAIRINGS(url,name):
     titleToSearchFor = common.getUserInput(__language__(21010),"")
+    if(titleToSearchFor == "" or titleToSearchFor == None):
+        return
     now = time.time()
     startRange = str(long(now * 1000))
     #url = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByRange(SearchByTitle("%s","T"),"GetAiringStartTime","%s",java_lang_Long_MAX_VALUE,true)&encoder=json' % (urllib2.quote(titleToSearchFor.encode("utf8")), startRange)
@@ -506,6 +510,7 @@ def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,sh
     liz=xbmcgui.ListItem(name)
     scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
     actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=airing:' + airingid
+    actionAddFavorite = "addfavorite|" + strUrl + '/sagex/api?command=AddFavorite&1=%s&2=true&3=true&4=&5=&6=&7=&8=&9=&10=&11=&12=&13=&14=' % showtitle
     actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
     actionRecord = "record|" + strUrl + '/sagex/api?command=Record&1=airing:' + airingid
     actionWatchNow = "watchnow|" + strUrl + "|" + airingid
@@ -518,6 +523,8 @@ def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,sh
         contextMenuItems.append((__language__(21017), 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'))
         if(isfavorite):
             contextMenuItems.append((__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')'))
+        else:
+            contextMenuItems.append((__language__(21030), 'XBMC.RunScript(' + scriptToRun + ', ' + actionAddFavorite + ')'))
     else:
         if(isfavorite):
             contextMenuItems.append((__language__(21019), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')'))
@@ -530,6 +537,7 @@ def addAiringLink(name,url,plot,iconimage,genre,originalairingdate,airingdate,sh
                 contextMenuItems.append((__language__(21020), 'XBMC.RunScript(' + scriptToRun + ', ' + actionWatchNow + ')'))
                 
             contextMenuItems.append((__language__(21019), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRecord + ')'))
+            contextMenuItems.append((__language__(21030), 'XBMC.RunScript(' + scriptToRun + ', ' + actionAddFavorite + ')'))
 
     liz.addContextMenuItems(contextMenuItems, True)
     

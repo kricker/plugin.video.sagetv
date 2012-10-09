@@ -87,11 +87,23 @@ def filemap(filepath):
         
 #Get the passed in argument from the addContextMenuItems() call in default.py
 args = sys.argv[1].split("|")
-if(args[0] in ["cancelrecording","removefavorite","record","setwatched","clearwatched","setarchived","cleararchived"]):
+if(args[0] in ["cancelrecording","addfavorite","removefavorite","record","setwatched","clearwatched","setarchived","cleararchived"]):
     sageApiUrl = args[1]
     urllib.urlopen(sageApiUrl)
     if(args[0] == "record"):
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21013) + ")")
+    elif(args[0] == "addfavorite"):
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21031) + ")")
+    elif(args[0] == "removefavorite"):
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21032) + ")")
+    elif(args[0] == "setwatched"):
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21033) + ")")
+    elif(args[0] == "clearwatched"):
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21034) + ")")
+    elif(args[0] == "setarchived"):
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21035) + ")")
+    elif(args[0] == "cleararchived"):
+        xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21036) + ")")
     xbmc.executebuiltin("Container.Refresh")
 elif(args[0][0:6] == "delete"):
     firstApiCall = args[1]
