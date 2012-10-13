@@ -70,15 +70,15 @@ def TOPLEVELCATEGORIES():
     print "Successfully able to connect to the SageTV server @ " + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
     sagexVersion = ""
     for plugin in plugins:
-        if(plugin.get("PluginIdentifier") == "sagex-api"):
+        if(plugin.get("PluginIdentifier") == "sagex-api-services"):
             sagexVersion = plugin.get("PluginVersion")
  
-    print "TOPLEVELCATEGORIES STARTED; sagex-api version=" + sagexVersion
+    print "TOPLEVELCATEGORIES STARTED; sagex-api-services version=" + sagexVersion
     if(sagexVersion == ""):
         xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + " " + MIN_VERSION_SAGEX_REQUIRED, __language__(21006),__language__(21007))
         return        
     if(comparePluginVersions(sagexVersion, MIN_VERSION_SAGEX_REQUIRED) < 0):
-        xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + MIN_VERSION_SAGEX_REQUIRED, __language__(21008) + " " + sagexVersion,__language__(21009) + " " + MIN_VERSION_SAGEX_REQUIRED)
+        xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + " " + MIN_VERSION_SAGEX_REQUIRED, __language__(21008) + " " + sagexVersion,__language__(21009) + " " + MIN_VERSION_SAGEX_REQUIRED)
         return
 
     addTopLevelDir('1. Watch Recordings', strUrl + '/sagex/api?c=xbmc:GetTVMediaFilesGroupedByTitle&size=500&encoder=json',1,IMAGE_POSTER,'Browse previously recorded and currently recording shows')
@@ -138,8 +138,8 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         episodeNum = int(mfSubset.get("EpisodeNumber"))
         studio = mfSubset.get("AiringChannelName")
         isFavorite = mfSubset.get("IsFavorite")
-        watchedDuration = mfSubset.get("WatchedDuration") // 1000
-        fileDuration = mfSubset.get("FileDuration") // 1000
+        watchedDuration = mfSubset.get("WatchedDuration", 0) // 1000
+        fileDuration = mfSubset.get("FileDuration", 0) // 1000
         isWatched = mfSubset.get("IsWatched")
         isArchived = mfSubset.get("IsLibraryFile")
         
@@ -339,8 +339,8 @@ def SEARCHFORRECORDINGS(url,name):
         episodeNum = int(mfSubset.get("EpisodeNumber"))
         studio = mfSubset.get("AiringChannelName")
         isFavorite = mfSubset.get("IsFavorite")
-        watchedDuration = mfSubset.get("WatchedDuration") // 1000
-        fileDuration = mfSubset.get("FileDuration") // 1000
+        watchedDuration = mfSubset.get("WatchedDuration", 0) // 1000
+        fileDuration = mfSubset.get("FileDuration", 0) // 1000
         isWatched = mfSubset.get("IsWatched")
         isArchived = mfSubset.get("IsLibraryFile")
         
@@ -476,6 +476,8 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         actionClearArchived = "cleararchived|" + strUrl + '/sagex/api?command=MoveTVFileOutOfLibrary&1=mediafile:' + mediafileid
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
         actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
+        actionWatchStream = "watchstream|" + strUrl + "|" + mediafileid
+        
         bisAiringRecording = isAiringRecording(airingid)
 
         contextMenuItems = []
@@ -493,8 +495,9 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
             liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 7, "playcount": 1 } )
         else:
             contextMenuItems.append((__language__(21022), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetWatched + ')'))
-            liz.setProperty("resumetime",str(resumetime))
-            liz.setProperty("totaltime",str(totaltime))
+            if(resumetime != 0 and totaltime != 0):
+                liz.setProperty("resumetime",str(resumetime))
+                liz.setProperty("totaltime",str(totaltime))
             liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 6, "playcount": 0 } )
 
         if(isArchived):
@@ -507,6 +510,7 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         contextMenuItems.append((__language__(21027), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteClearWatched + ')'))
         contextMenuItems.append((__language__(21028), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteDontLike + ')'))
         contextMenuItems.append((__language__(21029), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteWrongRecording + ')'))
+        contextMenuItems.append((__language__(21037), 'XBMC.RunScript(' + scriptToRun + ', ' + actionWatchStream + ')'))
         liz.addContextMenuItems(contextMenuItems, True)
         
         liz.setIconImage(iconimage)

@@ -1,3 +1,7 @@
+[B]Version 1.3.1 (Oct 13, 2012)[/B]
+- Added "Watch (Streamed)" context menu item which enables playing back via using SageTV remote services
+- Fixed file/watched duration issue where "None" wasn't handled
+
 [B]Version 1.3.0 (Oct 9, 2012)[/B]
 - Added support for playing back recordings that have multiple segments (using stack://)
 

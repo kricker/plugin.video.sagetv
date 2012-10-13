@@ -1,4 +1,4 @@
-import urllib,urllib2,re
+import urllib,urllib2,re,string
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 from time import sleep
 import simplejson as json
@@ -9,6 +9,8 @@ sage_mac = __settings__.getSetting("sage_mac")
 
 
 DEFAULT_CHARSET = 'utf-8'
+MIN_VERSION_STREAMING_SERVICES_PLUGIN_REQUIRED = "1.3.7.59"
+
 
 def executeSagexAPIJSONCall(url, resultToGet):
     print "*** sagex request URL:" + url
@@ -53,6 +55,35 @@ def unicodeToStr(obj):
         return obj
     else:
         return obj # leave numbers and booleans alone
+
+def comparePluginVersions(s1, s2):
+
+    # See if they are equal.
+    if s1 == s2:
+        return 0
+
+    # Make sure they are the same length.
+    str1 = normalizePluginString(s1, len(string.split(s2, '.')))
+    str2 = normalizePluginString(s2, len(string.split(s1, '.')))
+
+    # Split into parts separated by '.'
+    p1 = string.split(str1, '.')
+    p2 = string.split(str2, '.')
+
+    for i in range(len(p1)):
+        int1 = int(p1[i])
+        int2 = int(p2[i])
+        if int1 < int2:
+            return -1
+        elif int2 < int1:
+            return 1
+
+    return 0
+        
+def normalizePluginString(s, l):
+    while len(string.split(s, '.')) < l:
+        s += ".0"
+    return s
 
 # SageTV recording Directories for path replacement
 sage_rec = __settings__.getSetting("sage_rec")
@@ -119,6 +150,36 @@ elif(args[0][0:6] == "delete"):
     if(args[0] == "delete"):
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21012) + ")")
     xbmc.executebuiltin("Container.Refresh")
+elif(args[0] == "watchstream"):
+    strUrl = args[1]
+    mediaFileID = args[2]    
+    streamingUrl = strUrl + "/stream/HTTPLiveStreamingPlaylist?MediaFileId=" + mediaFileID
+    #First check that the media streaming services plugin is installed
+    validStreamingServicesPluginVersionFound = True
+    url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
+    plugins = executeSagexAPIJSONCall(url, "Result")
+
+    if(plugins == None or len(plugins) == 0):
+        print "SageTV not detected, or required plugins not installed"
+        xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
+        validStreamingServicesPluginVersionFound = False
+        
+    streamingServicesPluginVersion = ""
+    for plugin in plugins:
+        if(plugin.get("PluginIdentifier") == "mediastreaming"):
+            streamingServicesPluginVersion = plugin.get("PluginVersion")
+
+    print "***SageTV mediastreaming plugin version installed=" + streamingServicesPluginVersion
+    if(streamingServicesPluginVersion == ""):
+        xbmcgui.Dialog().ok(__language__(21004),__language__(21038) + " " + MIN_VERSION_STREAMING_SERVICES_PLUGIN_REQUIRED, __language__(21039),__language__(21040))
+        validStreamingServicesPluginVersionFound = False
+    if(comparePluginVersions(streamingServicesPluginVersion, MIN_VERSION_STREAMING_SERVICES_PLUGIN_REQUIRED) < 0):
+        xbmcgui.Dialog().ok(__language__(21004),__language__(21038) + " " + MIN_VERSION_STREAMING_SERVICES_PLUGIN_REQUIRED, __language__(21008) + " " + streamingServicesPluginVersion,__language__(21041) + " " + MIN_VERSION_STREAMING_SERVICES_PLUGIN_REQUIRED)
+        validStreamingServicesPluginVersionFound = False
+
+    if(validStreamingServicesPluginVersionFound):
+        print "**Attempting to playback stream of recording; streaming URL=" + streamingUrl
+        xbmc.executebuiltin('PlayMedia("%s")' % streamingUrl)
 elif(args[0] == "watchnow"):
     xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21014) + ")")
     strUrl = args[1]

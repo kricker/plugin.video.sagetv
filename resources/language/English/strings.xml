@@ -16,7 +16,7 @@
     <string id="21003">2. Confirm the settings of this addon are correct.</string>
     <string id="21004">Dependency Missing</string>
     <string id="21005">This addon requires sagex-api-services version</string>
-    <string id="21006">You do not have the sagex-api plugin installed</string>
+    <string id="21006">You do not have the sagex-api-services plugin installed</string>
     <string id="21007">Please install sagex-api-services to enable this plugin.</string>
     <string id="21008">You have version</string>
     <string id="21009">Please install/upgrade your sagex-api-services version to</string>
@@ -47,4 +47,9 @@
     <string id="21034">Cleared watched flag</string>
     <string id="21035">Set archived flag</string>
     <string id="21036">Cleared archived flag</string>
+    <string id="21037">Watch (Streamed)</string>
+    <string id="21038">This addon requires media streaming services version</string>
+    <string id="21039">You do not have the media streaming services plugin installed</string>
+    <string id="21040">Please install media streaming services to enable watching streams.</string>
+    <string id="21041">Please install/upgrade your media streaming services plugin version to</string>
 </strings>
