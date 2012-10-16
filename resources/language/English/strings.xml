@@ -52,4 +52,7 @@
     <string id="21039">You do not have the media streaming services plugin installed</string>
     <string id="21040">Please install media streaming services to enable watching streams.</string>
     <string id="21041">Please install/upgrade your media streaming services plugin version to</string>
+    <string id="21042">Set All Watched</string>
+    <string id="21043">Clear All Watched</string>
+    <string id="21044">Delete All</string>
 </strings>

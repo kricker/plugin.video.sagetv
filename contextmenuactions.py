@@ -136,7 +136,7 @@ if(args[0] in ["cancelrecording","addfavorite","removefavorite","record","setwat
     elif(args[0] == "cleararchived"):
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21036) + ")")
     xbmc.executebuiltin("Container.Refresh")
-elif(args[0][0:6] == "delete"):
+elif(args[0][0:6] == "delete" and args[0] != "deleteall"):
     firstApiCall = args[1]
     #Check what kind of delete command was sent
     deleteCommand = args[0].replace("delete","")
@@ -150,9 +150,27 @@ elif(args[0][0:6] == "delete"):
     if(args[0] == "delete"):
         xbmc.executebuiltin("Notification(" + __language__(21011) + "," + __language__(21012) + ")")
     xbmc.executebuiltin("Container.Refresh")
+elif(args[0] in ["setallwatched","clearallwatched","deleteall"]):
+    strUrl = args[1]
+    showName = args[2]
+    urlToShowEpisodes = strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=' + urllib2.quote(showName.encode("utf8")) + '&size=500&encoder=json'
+    mfs = executeSagexAPIJSONCall(urlToShowEpisodes, "Result")
+    print "***Getting ready to execute action '" + args[0] + "'; # of EPISODES for " + showName + "=" + str(len(mfs))
+    for mfSubset in mfs:
+        strMediaFileID = mfSubset.get("MediaFileID")
+        if(args[0] == "setallwatched"):
+            sageApiUrl = strUrl + '/sagex/api?command=SetWatched&1=mediafile:' + strMediaFileID
+        elif(args[0] == "clearallwatched"):
+            sageApiUrl = strUrl + '/sagex/api?command=ClearWatched&1=mediafile:' + strMediaFileID
+        elif(args[0] == "deleteall"):
+            sageApiUrl = strUrl + '/sagex/api?command=DeleteFile&1=mediafile:' + strMediaFileID
+            
+        urllib.urlopen(sageApiUrl)
+
+    xbmc.executebuiltin("Container.Refresh")
 elif(args[0] == "watchstream"):
     strUrl = args[1]
-    mediaFileID = args[2]    
+    mediaFileID = args[2]
     streamingUrl = strUrl + "/stream/HTTPLiveStreamingPlaylist?MediaFileId=" + mediaFileID
     #First check that the media streaming services plugin is installed
     validStreamingServicesPluginVersionFound = True
