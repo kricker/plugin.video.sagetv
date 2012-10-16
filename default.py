@@ -635,15 +635,16 @@ def addDir(name,url,mode,iconimage,thumbimage,showexternalid,airingdate,fanartim
         liz.setThumbnailImage(iconimage)
     liz.setProperty("fanart_image",fanartimage)
     
-    scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
-    actionSetAllWatched = "setallwatched|" + strUrl + '|' + name
-    actionClearAllWatched = "clearallwatched|" + strUrl + '|' + name
-    actionDeleteAll = "deleteall|" + strUrl + '|' + name
-    contextMenuItems = []
-    contextMenuItems.append((__language__(21042), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetAllWatched + ')'))
-    contextMenuItems.append((__language__(21043), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearAllWatched + ')'))
-    contextMenuItems.append((__language__(21044), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteAll + ')'))
-    liz.addContextMenuItems(contextMenuItems, True)
+    if(name != "[All Shows]"):
+        scriptToRun = "special://home/addons/plugin.video.sagetv/contextmenuactions.py"
+        actionSetAllWatched = "setallwatched|" + strUrl + '|' + name
+        actionClearAllWatched = "clearallwatched|" + strUrl + '|' + name
+        actionDeleteAll = "deleteall|" + strUrl + '|' + name
+        contextMenuItems = []
+        contextMenuItems.append((__language__(21042), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetAllWatched + ')'))
+        contextMenuItems.append((__language__(21043), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearAllWatched + ')'))
+        contextMenuItems.append((__language__(21044), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteAll + ')'))
+        liz.addContextMenuItems(contextMenuItems, True)
     
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
