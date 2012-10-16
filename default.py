@@ -475,6 +475,7 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
         actionSetArchived = "setarchived|" + strUrl + '/sagex/api?command=MoveFileToLibrary&1=mediafile:' + mediafileid
         actionClearArchived = "cleararchived|" + strUrl + '/sagex/api?command=MoveTVFileOutOfLibrary&1=mediafile:' + mediafileid
         actionCancelRecording = "cancelrecording|" + strUrl + '/sagex/api?command=CancelRecord&1=mediafile:' + mediafileid
+        actionAddFavorite = "addfavorite|" + strUrl + '/sagex/api?command=AddFavorite&1=%s&2=true&3=true&4=&5=&6=&7=&8=&9=&10=&11=&12=&13=&14=' % showtitle
         actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForAiring(GetAiringForID(' + airingid + ')))'
         actionWatchStream = "watchstream|" + strUrl + "|" + mediafileid
         
@@ -486,9 +487,13 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
             contextMenuItems.append((__language__(21017), 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'))
             if(isfavorite):
                 contextMenuItems.append((__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')'))
+            else:
+                contextMenuItems.append((__language__(21030), 'XBMC.RunScript(' + scriptToRun + ', ' + actionAddFavorite + ')'))
         else:
             if(isfavorite):
                 contextMenuItems.append((__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')'))
+            else:
+                contextMenuItems.append((__language__(21030), 'XBMC.RunScript(' + scriptToRun + ', ' + actionAddFavorite + ')'))
 
         if(iswatched):
             contextMenuItems.append((__language__(21023), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearWatched + ')'))
@@ -570,6 +575,10 @@ def isAiringRecording(airingid):
     sageApiUrl = strUrl + '/sagex/api?command=IsFileCurrentlyRecording&1=airing:' + airingid + '&encoder=json'
     return executeSagexAPIJSONCall(sageApiUrl, "Result")
         
+def getFavoriteIDForShowTitle(showtitle):
+    sageApiUrl = strUrl + '/sagex/api?c=xbmc:GetFavoriteIDForShowTitle&1=%s&encoder=json' % urllib2.quote(showtitle.encode("utf8"))
+    return executeSagexAPIJSONCall(sageApiUrl, "Result")
+        
 def getShowSeriesDescription(showexternalid):
     sageApiUrl = strUrl + '/sagex/api?command=EvaluateExpression&1=GetSeriesDescription(GetShowSeriesInfo(GetShowForExternalID("' + showexternalid + '")))&encoder=json'
     return executeSagexAPIJSONCall(sageApiUrl, "Result")
@@ -643,6 +652,14 @@ def addDir(name,url,mode,iconimage,thumbimage,showexternalid,airingdate,fanartim
         contextMenuItems = []
         contextMenuItems.append((__language__(21042), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetAllWatched + ')'))
         contextMenuItems.append((__language__(21043), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearAllWatched + ')'))
+        favID = getFavoriteIDForShowTitle(name)
+        if(favID != ""):
+            actionRemoveFavorite = "removefavorite|" + strUrl + '/sagex/api?command=EvaluateExpression&1=RemoveFavorite(GetFavoriteForID(' + favID + '))'
+            contextMenuItems.append((__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')'))
+        else:
+            actionAddFavorite = "addfavorite|" + strUrl + '/sagex/api?command=AddFavorite&1=%s&2=true&3=true&4=&5=&6=&7=&8=&9=&10=&11=&12=&13=&14=' % name
+            contextMenuItems.append((__language__(21030), 'XBMC.RunScript(' + scriptToRun + ', ' + actionAddFavorite + ')'))
+            
         contextMenuItems.append((__language__(21044), 'XBMC.RunScript(' + scriptToRun + ', ' + actionDeleteAll + ')'))
         liz.addContextMenuItems(contextMenuItems, True)
     

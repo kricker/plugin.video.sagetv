@@ -8,6 +8,7 @@
     <string id="20004">SageTV Recording Folder</string>
     <string id="20005">SageTV Recording Folder Network path</string>
     <string id="20006">SageTV Server MAC Address (for WOL)</string>
+    <string id="20007">Streaming Bandwidth (kbps)</string>
     <!-- Settings-->
     
     <string id="21000">SageTV Server Not Found</string>

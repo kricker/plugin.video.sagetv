@@ -1,5 +1,6 @@
 import urllib,urllib2,re,string
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon
+import time
 from time import sleep
 import simplejson as json
 
@@ -171,7 +172,11 @@ elif(args[0] in ["setallwatched","clearallwatched","deleteall"]):
 elif(args[0] == "watchstream"):
     strUrl = args[1]
     mediaFileID = args[2]
-    streamingUrl = strUrl + "/stream/HTTPLiveStreamingPlaylist?MediaFileId=" + mediaFileID
+    #streamingUrl = strUrl + "/stream/HTTPLiveStreamingPlaylist?MediaFileId=" + mediaFileID
+    qualitySettingArray = [150, 240, 440, 640, 840, 1240, 1840]
+    qualitySettingIndex = int(__settings__.getSetting("streaming_quality"))
+    qualitySetting = qualitySettingArray[qualitySettingIndex]
+    streamingUrl = strUrl + "/stream/HTTPLiveStreamingPlaylist?MediaFileId=%s&ConversionId=%s&Quality=%s" % (mediaFileID, str(int(time.time())), qualitySetting)
     #First check that the media streaming services plugin is installed
     validStreamingServicesPluginVersionFound = True
     url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
