@@ -101,21 +101,21 @@ def VIEWLISTOFRECORDEDSHOWS(url,name):
         mfsForTitle = titleObjects.get(title)
         for mfSubset in mfsForTitle:
             strTitle = mfSubset.get("ShowTitle")
-            strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+            strTitleEncoded = strTitle.encode("utf8")
             strMediaFileID = mfSubset.get("MediaFileID")
             strExternalID = mfSubset.get("ShowExternalID")
             startTime = float(mfSubset.get("AiringStartTime") // 1000)
             strAiringdateObject = date.fromtimestamp(startTime)
             strAiringdate = "%02d.%02d.%s" % (strAiringdateObject.day, strAiringdateObject.month, strAiringdateObject.year)
             break
-        urlToShowEpisodes = strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=' + urllib2.quote(strTitle.encode("utf8")) + '&size=500&encoder=json'
+        urlToShowEpisodes = strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=' + urllib2.quote(strTitleEncoded) + '&size=500&encoder=json'
         #urlToShowEpisodes = strUrl + '/sagex/api?command=EvaluateExpression&1=FilterByMethod(GetMediaFiles("T"),"GetMediaTitle","' + urllib2.quote(strTitle.encode("utf8")) + '",true)&size=500&encoder=json'
         #urlToShowEpisodes = strUrl + '/sage/Search?searchType=TVFiles&SearchString=' + urllib2.quote(strTitle.encode("utf8")) + '&DVD=on&sort2=airdate_asc&partials=both&TimeRange=0&pagelen=100&sort1=title_asc&filename=&Video=on&search_fields=title&xml=yes'
-        print "ADDING strTitle=" + strTitle + "; urlToShowEpisodes=" + urlToShowEpisodes
+        print "ADDING strTitleEncoded=" + strTitleEncoded + "; urlToShowEpisodes=" + urlToShowEpisodes
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
         #print "ADDING imageUrl=" + imageUrl
-        addDir(strTitle, urlToShowEpisodes,11,imageUrl,'',strExternalID,strAiringdate,fanartUrl)
+        addDir(strTitleEncoded, urlToShowEpisodes,11,imageUrl,'',strExternalID,strAiringdate,fanartUrl)
 
 def VIEWLISTOFEPISODESFORSHOW(url,name):
     mfs = executeSagexAPIJSONCall(url, "Result")
@@ -127,7 +127,7 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
 
     for mfSubset in mfs:
         strTitle = mfSubset.get("ShowTitle")
-        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        strTitleEncoded = strTitle.encode("utf8")
         strMediaFileID = mfSubset.get("MediaFileID")
 
         strEpisode = mfSubset.get("EpisodeTitle")
@@ -164,12 +164,12 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
                         strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                         strDescription = strGenre
                     elif(strGenre.find("Sports")>=0):
-                        strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDisplayText = strTitleEncoded + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                         strDescription = strGenre
             if(name == "[All Shows]"):
-                strDisplayText = strTitle + " - " + strDisplayText
+                strDisplayText = strTitleEncoded + " - " + strDisplayText
         else:
-            strDisplayText = strTitle
+            strDisplayText = strTitleEncoded
 
         segs = mfSubset.get("SegmentFiles")
         if(len(segs) == 1):
@@ -187,7 +187,7 @@ def VIEWLISTOFEPISODESFORSHOW(url,name):
         print "************strMappedFilepath=" + str(strMappedFilepath)
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
-        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl,isArchived)
+        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitleEncoded,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl,isArchived)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -327,8 +327,7 @@ def SEARCHFORRECORDINGS(url,name):
 
     for mfSubset in mfs:
         strTitle = mfSubset.get("ShowTitle")
-        print "showtitle=" + str(strTitle)
-        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        strTitleEncoded = strTitle.encode("utf8")
         strMediaFileID = mfSubset.get("MediaFileID")
 
         strEpisode = mfSubset.get("EpisodeTitle")
@@ -355,18 +354,18 @@ def SEARCHFORRECORDINGS(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        strDisplayText = strTitle
+        strDisplayText = strTitleEncoded
         if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
             if(strEpisode != "" and strDescription != ""):
-                strDisplayText = strTitle + ' - ' + strDescription
+                strDisplayText = strTitleEncoded + ' - ' + strDescription
             elif(strEpisode != ""):
-                strDisplayText = strTitle + ' - ' + strEpisode
+                strDisplayText = strTitleEncoded + ' - ' + strEpisode
             else:
                 if(strGenre.find("News")>=0):
                     strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                     strDescription = strGenre
                 elif(strGenre.find("Sports")>=0):
-                    strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                    strDisplayText = strTitleEncoded + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                     strDescription = strGenre
                 
 
@@ -386,7 +385,7 @@ def SEARCHFORRECORDINGS(url,name):
         print "************strMappedFilepath=" + str(strMappedFilepath)
         imageUrl = strUrl + "/sagex/media/poster/" + strMediaFileID
         fanartUrl = strUrl + "/sagex/media/background/" + strMediaFileID
-        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitle,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl,isArchived)
+        addMediafileLink(strDisplayText,strMappedFilepath,strDescription,imageUrl,strGenre,strOriginalAirdate,strAiringdate,strTitleEncoded,strMediaFileID,strAiringID,seasonNum,episodeNum,studio,isFavorite,isWatched,watchedDuration,fileDuration,fanartUrl,isArchived)
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -576,7 +575,7 @@ def isAiringRecording(airingid):
     return executeSagexAPIJSONCall(sageApiUrl, "Result")
         
 def getFavoriteIDForShowTitle(showtitle):
-    sageApiUrl = strUrl + '/sagex/api?c=xbmc:GetFavoriteIDForShowTitle&1=%s&encoder=json' % urllib2.quote(showtitle.encode("utf8"))
+    sageApiUrl = strUrl + '/sagex/api?c=xbmc:GetFavoriteIDForShowTitle&1=%s&encoder=json' % urllib2.quote(showtitle)
     return executeSagexAPIJSONCall(sageApiUrl, "Result")
         
 def getShowSeriesDescription(showexternalid):

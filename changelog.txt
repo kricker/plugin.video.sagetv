@@ -1,3 +1,6 @@
+[B]Version 1.3.4 (Oct 17, 2012)[/B]
+- Improved display of show titles that contain special (non-ASCII) characters (added UTF8 support)
+
 [B]Version 1.3.3 (Oct 16, 2012)[/B]
 - Added new streaming quality setting and enhanced "Watch (Stream)" context menu to force what quality to stream the recording back as (note that this is a workaround to using the standard streaming URL which does not work due to a bug in ffmpeg that we're waiting to get fixed)
 - Added "Add/Remove Favorite" show level context menu items

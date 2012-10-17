@@ -154,7 +154,7 @@ elif(args[0][0:6] == "delete" and args[0] != "deleteall"):
 elif(args[0] in ["setallwatched","clearallwatched","deleteall"]):
     strUrl = args[1]
     showName = args[2]
-    urlToShowEpisodes = strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=' + urllib2.quote(showName.encode("utf8")) + '&size=500&encoder=json'
+    urlToShowEpisodes = strUrl + '/sagex/api?c=xbmc:GetMediaFilesForShowWithSubsetOfProperties&1=' + urllib2.quote(showName) + '&size=500&encoder=json'
     mfs = executeSagexAPIJSONCall(urlToShowEpisodes, "Result")
     print "***Getting ready to execute action '" + args[0] + "'; # of EPISODES for " + showName + "=" + str(len(mfs))
     for mfSubset in mfs:
