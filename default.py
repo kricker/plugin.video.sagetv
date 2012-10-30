@@ -197,7 +197,7 @@ def VIEWUPCOMINGRECORDINGS(url,name):
     for airing in airings:
         show = airing.get("Show")
         strTitle = airing.get("AiringTitle")
-        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        strTitleEncoded = strTitle.encode("utf8")
         strEpisode = show.get("ShowEpisode")
         if(strEpisode == None):
             strEpisode = ""        
@@ -223,22 +223,22 @@ def VIEWUPCOMINGRECORDINGS(url,name):
 
         # if there is no episode name use the description in the title
         
-        strDisplayText = strTitle
+        strDisplayText = strTitleEncoded
         if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
             if(strEpisode == ""):
                 if(strDescription != ""):
-                    strDisplayText = strTitle + ' - ' + strDescription
+                    strDisplayText = strTitleEncoded + ' - ' + strDescription
                 else:
                     if(strGenre.find("News")>=0):
                         strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                         strDescription = strGenre
                     elif(strGenre.find("Sports")>=0):
-                        strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDisplayText = strTitleEncoded + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                         strDescription = strGenre
             else:
-                strDisplayText = strTitle + ' - ' + strEpisode
+                strDisplayText = strTitleEncoded + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitleEncoded,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -268,7 +268,7 @@ def VIEWAIRINGSONCHANNEL(url,name):
     for airing in airings:
         show = airing.get("Show")
         strTitle = airing.get("AiringTitle")
-        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        strTitleEncoded = strTitle.encode("utf8")
         strEpisode = show.get("ShowEpisode")
         if(strEpisode == None):
             strEpisode = ""        
@@ -293,22 +293,22 @@ def VIEWAIRINGSONCHANNEL(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        strDisplayText = strTitle
+        strDisplayText = strTitleEncoded
         if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
             if(strEpisode == ""):
                 if(strDescription != ""):
-                    strDisplayText = strTitle + ' - ' + strDescription
+                    strDisplayText = strTitleEncoded + ' - ' + strDescription
                 else:
                     if(strGenre.find("News")>=0):
                         strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                         strDescription = strGenre
                     elif(strGenre.find("Sports")>=0):
-                        strDisplayText = strTitle + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
+                        strDisplayText = strTitleEncoded + " - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                         strDescription = strGenre
             else:
-                strDisplayText = strTitle + ' - ' + strEpisode
+                strDisplayText = strTitleEncoded + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitleEncoded,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
@@ -402,7 +402,7 @@ def SEARCHFORAIRINGS(url,name):
     for airing in airings:
         show = airing.get("Show")
         strTitle = airing.get("AiringTitle")
-        strTitle = unicodedata.normalize('NFKD', strTitle).encode('ascii','ignore')
+        strTitleEncoded = strTitle.encode("utf8")
         strEpisode = show.get("ShowEpisode")
         if(strEpisode == None):
             strEpisode = ""        
@@ -427,18 +427,18 @@ def SEARCHFORAIRINGS(url,name):
             strOriginalAirdate = "%02d.%02d.%s" % (strOriginalAirdateObject.day, strOriginalAirdateObject.month, strOriginalAirdateObject.year)
 
         # if there is no episode name use the description in the title
-        strDisplayText = strTitle
+        strDisplayText = strTitleEncoded
         if(strGenre.find("Movie")<0 and strGenre.find("Movies")<0 and strGenre.find("Film")<0 and strGenre.find("Shopping")<0 and strGenre.find("Consumer")<0):
             if(strEpisode == ""):
                 if(strDescription != ""):
-                    strDisplayText = strTitle + ' - ' + strDescription
+                    strDisplayText = strTitleEncoded + ' - ' + strDescription
                 else:
                     strDisplayText = studio + " News - " + strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime
                     strDescription = strGenre
             else:
-                strDisplayText = strTitle + ' - ' + strEpisode
+                strDisplayText = strTitleEncoded + ' - ' + strEpisode
         strDisplayText = strftime('%a %b %d', time.localtime(startTime)) + " @ " + airTime + ": " + strDisplayText
-        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitle,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
+        addAiringLink(strDisplayText,'',strDescription,IMAGE_THUMB,strGenre,strOriginalAirdate,strAiringdate,strTitleEncoded,strAiringID,seasonNum,episodeNum,studio,isFavorite, airing.get("AiringStartTime"), airing.get("AiringEndTime"))
 
     xbmc.executebuiltin("Container.SetViewMode(504)")
 
