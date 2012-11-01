@@ -66,19 +66,23 @@ confluence_views = [500,501,502,503,504,508]
 
 def TOPLEVELCATEGORIES():
 
-    url = strUrl + '/sagex/api?command=GetInstalledPlugins&encoder=json'
-    plugins = executeSagexAPIJSONCall(url, "Result")
+    #url = strUrl + '/sagex/api?command=GetInstalledPluginss&encoder=json'
+    url = strUrl + '/sagex/api?c=xbmc:GetPluginVersion&1=sagex-api-services&encoder=json'
+    sagexVersion = executeSagexAPIJSONCall(url, "Result")
 
-    if(plugins == None or len(plugins) == 0):
-        print "SageTV not detected, or required plugins not installed"
-        xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
-        return
+    if(sagexVersion == None or sagexVersion.find("Exception") != -1):
+        #If no plugins were returned, first check that the user has the appropriate xbmc.js which has the required GetPluginVersion method
+        print "************errorMsg=" + str(sagexVersion)
+        if(sagexVersion == "java.lang.NoSuchMethodException: no such method: GetPluginVersion"):
+            print "GetPluginVersion method not found in the xbmc.js file; user must make sure they have the latest xbmc.js installed on their SageTV server"
+            xbmcgui.Dialog().ok(__language__(21004),__language__(21045),__language__(21046),__language__(21047))
+            return
+        else:
+            print "SageTV not detected, or required plugins not installed"
+            xbmcgui.Dialog().ok(__language__(21000),__language__(21001),__language__(21002),__language__(21003))
+            return
         
     print "Successfully able to connect to the SageTV server @ " + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
-    sagexVersion = ""
-    for plugin in plugins:
-        if(plugin.get("PluginIdentifier") == "sagex-api-services"):
-            sagexVersion = plugin.get("PluginVersion")
  
     print "TOPLEVELCATEGORIES STARTED; sagex-api-services version=" + sagexVersion
     if(sagexVersion == ""):
@@ -618,7 +622,12 @@ def executeSagexAPIJSONCall(url, resultToGet):
     numKeys = len(objKeys)
     if(numKeys == 1):
         return resp.get(resultToGet)    
-
+    elif(numKeys > 1):
+        error = resp.get("error")
+        if(error != None and error != ""):
+            return error
+        else:
+            return None
     else:
         return None
 
