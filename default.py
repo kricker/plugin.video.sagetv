@@ -44,10 +44,10 @@ def filemap(filepath):
         if ( filepath.find(rec) != -1 ):
             # If the user didn't specify a trailing \ or / in the recording path setting, add that as that's critical to mapping the path correctly
             if(rec.find("\\") != -1):
-                if(rec.rfind("\\") != len(rec)):
+                if(rec.rfind("\\") != (len(rec)-1)):
                     rec = rec + "\\"
             elif(rec.find("/") != -1):
-                if(rec.rfind("/") != len(rec)):
+                if(rec.rfind("/") != (len(rec)-1)):
                     rec = rec + "/"
             return filepath.replace(rec, unc)
 
