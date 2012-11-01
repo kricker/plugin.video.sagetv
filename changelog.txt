@@ -1,3 +1,6 @@
+[B]Version 1.3.6 (Nov 1, 2012)[/B]
+- Handle SageTV recording path setting that is with and without a trailing slash (previously the addon didn't work if you didn't include the trailing slash in your recording path)
+
 [B]Version 1.3.5 (Oct 30, 2012)[/B]
 - Fixed UTF8 issue when browsing channels and searching (missed those in the previous fix)
 
