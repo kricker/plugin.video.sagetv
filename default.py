@@ -78,7 +78,7 @@ def TOPLEVELCATEGORIES():
             xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + " " + MIN_VERSION_SAGEX_REQUIRED, __language__(21006),__language__(21007))
             xbmc.executebuiltin('ActivateWindow(Home)')
             return
-        elif(sagexVersion == "java.lang.NoSuchMethodException: no such method: GetPluginVersion"):
+        elif(sagexVersion.find("java.lang.NoSuchMethodException: no such method: GetPluginVersion") != -1 or sagexVersion.find("Missing Service File") != -1):
             print "GetPluginVersion method not found in the xbmc.js file; user must make sure they have the latest xbmc.js installed on their SageTV server"
             xbmcgui.Dialog().ok(__language__(21004),__language__(21045),__language__(21046),__language__(21047))
             xbmc.executebuiltin('ActivateWindow(Home)')
