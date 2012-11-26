@@ -11,7 +11,7 @@
         <provides>video</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <language>ar be bg de el en es fr lt pl pt_BR sk sv</language>
+    <language></language>
     <summary lang="ar">ستيج تي في: استعراض و إدارة البث المباشر و التسجيلات</summary>
     <summary lang="be">SageTV: Browse and manage airings and recordings</summary>
     <summary lang="bg">SageTV: Преглеждайте и управлявайте излъчвания и записи</summary>
