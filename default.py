@@ -793,12 +793,14 @@ if mode==None or url==None or len(url)<1:
         print ""
         TOPLEVELCATEGORIES()
        
+#Watch Recordings
 elif mode==1:
     print ""+url
     VIEWLISTOFRECORDEDSHOWS(url,name)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
         
+#View List of Episodes for a show
 elif mode==11:
     print ""+url
     VIEWLISTOFEPISODESFORSHOW(url,name)
@@ -806,6 +808,7 @@ elif mode==11:
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
         
+#View upcoming recordings
 elif mode==2:
     print ""+url
     VIEWUPCOMINGRECORDINGS(url,name)
@@ -813,18 +816,21 @@ elif mode==2:
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 
+#View channel listing
 elif mode==3:
     print ""+url
     VIEWCHANNELLISTING(url,name)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
 
+#View airings on channel
 elif mode==31:
     print ""+url
     VIEWAIRINGSONCHANNEL(url,name)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 
+#Search for recordings
 elif mode==4:
     print ""+url
     SEARCHFORRECORDINGS(url,name)
@@ -832,6 +838,7 @@ elif mode==4:
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
 
+#Search for airings
 elif mode==5:
     print ""+url
     SEARCHFORAIRINGS(url,name)
