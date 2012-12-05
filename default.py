@@ -68,12 +68,18 @@ def TOPLEVELCATEGORIES():
     url = strUrl + '/sagex/api?c=xbmc:GetPluginVersion&1=sagex-api-services&encoder=json'
     sagexVersion = executeSagexAPIJSONCall(url, "Result")
 
+    #First check that the sagex-services plugin exists in SageTV and can be called
     if(sagexVersion == None or sagexVersion.find("Exception") != -1):
         #If no plugins were returned, first check that the user has the appropriate xbmc.js which has the required GetPluginVersion method
         print "************errorMsg=" + str(sagexVersion)
         if(sagexVersion == "Exception: Problem accessing /sagex/api"):
             print "Sagex API not installed on the SageTV server"
             xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + " " + MIN_VERSION_SAGEX_REQUIRED, __language__(21006),__language__(21007))
+            xbmc.executebuiltin('ActivateWindow(Home)')
+            return
+        elif(sagexVersion.find("javax.script.ScriptException: sun.org.mozilla.javascript.internal.EvaluatorException") != -1):
+            print "xbmc.js file found but does not appear to be a valid .js file and is likely corrupt"
+            xbmcgui.Dialog().ok(__language__(21004),__language__(21048),__language__(21046),__language__(21047))
             xbmc.executebuiltin('ActivateWindow(Home)')
             return
         else:
@@ -84,6 +90,7 @@ def TOPLEVELCATEGORIES():
         
     print "Successfully able to connect to the SageTV server @ " + __settings__.getSetting("sage_ip") + ':' + __settings__.getSetting("sage_port")
  
+    #Second check that the version of the sagex-services plugin matches the minimum version required by this addon
     if(sagexVersion == ""):
         xbmcgui.Dialog().ok(__language__(21004),__language__(21005) + " " + MIN_VERSION_SAGEX_REQUIRED, __language__(21006),__language__(21007))
         xbmc.executebuiltin('ActivateWindow(Home)')
@@ -93,6 +100,7 @@ def TOPLEVELCATEGORIES():
         xbmc.executebuiltin('ActivateWindow(Home)')
         return
 
+    #Third check that the version of xbmc.js file matches the minimum version required by this addon
     url = strUrl + '/sagex/api?c=xbmc:GetXBMCJSVersionNumber&encoder=json'
     xbmcjsVersion = executeSagexAPIJSONCall(url, "Result")
     if(xbmcjsVersion != VERSION_XBMCJS_REQUIRED):
