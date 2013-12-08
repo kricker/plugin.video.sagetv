@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.sagetv"
        name="SageTV"
-       version="1.4.7"
+       version="1.5.0"
        provider-name="kricker,lehighbri,aaronb">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
@@ -43,5 +43,10 @@
     <description lang="sv">Gör det möjligt att ansluta till din SageTV server där du kan bläddra och se inspelningar, se och administrera kommande inspelningar, bläddra kanallistningar, och söka efter sändningar och inspelningar.&#10;&#10;Krav på ytterligare tillägg:&#10;SageTV med:&#10;    Jetty Web Server 2.3.0.14 eller nyare&#10;    Sagex-api vs 7.1.9.12 eller nyare&#10;    Batch Metadata Tools 4.10.1&#10;    xbmc.js (Kopiera xbmc.js från "plugin.video.sagetv\extras\sagex\services" till "SageTV\SageTV\sagex\services" katalogen)&#10;&#10;</description>
     <language></language>
     <platform>all</platform>
+    <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
+    <forum>http://forum.xbmc.org/showthread.php?tid=138838</forum>
+    <website>http://forums.sagetv.com/forums/showthread.php?t=58967</website>
+    <email></email>
+    <source>https://github.com/kricker/plugin.video.sagetv</source>
   </extension>
 </addon>

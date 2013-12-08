@@ -1,12 +1,19 @@
 import urllib,urllib2,re,string
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 import os
-import simplejson as json
 import unicodedata
 import time
 from xml.dom.minidom import parse
 from time import strftime,sleep
 from datetime import date
+if sys.version_info >=  (2, 7):
+    import json as _json
+    print "****XBMC python version (sys.version_info)=" + str(sys.version_info) + "****"
+    print "****using import json as _json****"
+else:
+    import simplejson as _json 
+    print "****XBMC python version (sys.version_info)=" + str(sys.version_info) + "****"
+    print "****using import simplejson as _json****"
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.sagetv')
 __language__ = __settings__.getLocalizedString
@@ -533,6 +540,16 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
 
         contextMenuItems = []
 
+        if(iswatched):
+            contextMenuItems.append((__language__(21023), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearWatched + ')'))
+            liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 7, "playcount": 1 } )
+        else:
+            contextMenuItems.append((__language__(21022), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetWatched + ')'))
+            if(resumetime != 0 and totaltime != 0):
+                liz.setProperty("resumetime",str(resumetime))
+                liz.setProperty("totaltime",str(totaltime))
+            liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 6, "playcount": 0 } )
+
         if(bisAiringRecording):
             contextMenuItems.append((__language__(21017), 'XBMC.RunScript(' + scriptToRun + ', ' + actionCancelRecording + ')'))
             if(isfavorite):
@@ -544,16 +561,6 @@ def addMediafileLink(name,url,plot,iconimage,genre,originalairingdate,airingdate
                 contextMenuItems.append((__language__(21018), 'XBMC.RunScript(' + scriptToRun + ', ' + actionRemoveFavorite + ')'))
             else:
                 contextMenuItems.append((__language__(21030), 'XBMC.RunScript(' + scriptToRun + ', ' + actionAddFavorite + ')'))
-
-        if(iswatched):
-            contextMenuItems.append((__language__(21023), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearWatched + ')'))
-            liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 7, "playcount": 1 } )
-        else:
-            contextMenuItems.append((__language__(21022), 'XBMC.RunScript(' + scriptToRun + ', ' + actionSetWatched + ')'))
-            if(resumetime != 0 and totaltime != 0):
-                liz.setProperty("resumetime",str(resumetime))
-                liz.setProperty("totaltime",str(totaltime))
-            liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot, "Genre": genre, "date": airingdate, "premiered": originalairingdate, "aired": originalairingdate, "TVShowTitle": showtitle, "season": seasonnum, "episode": episodenum, "studio": studio, "overlay": 6, "playcount": 0 } )
 
         if(isArchived):
             contextMenuItems.append((__language__(21025), 'XBMC.RunScript(' + scriptToRun + ', ' + actionClearArchived + ')'))
@@ -660,7 +667,7 @@ def executeSagexAPIJSONCall(url, resultToGet):
     fileData = input.read()
     if(fileData.find("Problem accessing /sagex/api") != -1):
         return "Exception: Problem accessing /sagex/api"
-    resp = unicodeToStr(json.JSONDecoder().decode(fileData))
+    resp = unicodeToStr(_json.JSONDecoder().decode(fileData))
 
     objKeys = resp.keys()
     numKeys = len(objKeys)

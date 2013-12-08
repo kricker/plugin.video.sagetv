@@ -2,7 +2,10 @@ import urllib,urllib2,re,string
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 import time
 from time import sleep
-import simplejson as json
+if sys.version_info >=  (2, 7):
+    import json as _json
+else:
+    import simplejson as _json 
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.sagetv')
 __language__ = __settings__.getLocalizedString
@@ -30,7 +33,7 @@ def executeSagexAPIJSONCall(url, resultToGet):
       input = urllib.urlopen(url)
       
     fileData = input.read()
-    resp = unicodeToStr(json.JSONDecoder().decode(fileData))
+    resp = unicodeToStr(_json.JSONDecoder().decode(fileData))
 
     objKeys = resp.keys()
     numKeys = len(objKeys)

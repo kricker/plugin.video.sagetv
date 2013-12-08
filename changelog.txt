@@ -1,3 +1,8 @@
+[B]Version 1.5.0 (Dec 8, 2013)[/B]
+- Updated reference to json lib to use the fastest lib possible (per this thread: http://forum.xbmc.org/showthread.php?tid=173887)
+- Updated addon.xml with additional attributes to support new addon repository (forum link, URL, etc)
+- Changed order of context menu items to put more frequently used items at top (e.g. set watched) and less frequently used lower (e.g. remove favorite)
+
 [B]Version 1.4.7 (Jan 2, 2013)[/B]
 - Updated addon.xml to depend on python 2.1.0 (required for Frodo)
 
